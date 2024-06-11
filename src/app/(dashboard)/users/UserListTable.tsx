@@ -1,57 +1,50 @@
 'use client'
 
 // React Imports
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 // Next Imports
-import Link from 'next/link'
 import { useParams } from 'next/navigation'
 
 // MUI Imports
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
-import Checkbox from '@mui/material/Checkbox'
 import IconButton from '@mui/material/IconButton'
-import { styled } from '@mui/material/styles'
+import MenuItem from '@mui/material/MenuItem'
 import TablePagination from '@mui/material/TablePagination'
 import type { TextFieldProps } from '@mui/material/TextField'
-import MenuItem from '@mui/material/MenuItem'
+import Typography from '@mui/material/Typography'
+import { styled } from '@mui/material/styles'
 
 // Third-party Imports
-import classnames from 'classnames'
+import type { RankingInfo } from '@tanstack/match-sorter-utils'
 import { rankItem } from '@tanstack/match-sorter-utils'
+import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
-  useReactTable,
-  getFilteredRowModel,
+  getFacetedMinMaxValues,
   getFacetedRowModel,
   getFacetedUniqueValues,
-  getFacetedMinMaxValues,
+  getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel
+  getSortedRowModel,
+  useReactTable
 } from '@tanstack/react-table'
-import type { ColumnDef, FilterFn } from '@tanstack/react-table'
-import type { RankingInfo } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames'
 
 // Type Imports
 import type { ThemeColor } from '@core/types'
-import type { UsersType } from '@/types/apps/userTypes'
 
 // Component Imports
-import TableFilters from './TableFilters'
-import AddUserDrawer from './AddUserDrawer'
-import OptionMenu from '@core/components/option-menu'
 import TablePaginationComponent from '@components/TablePaginationComponent'
 import CustomTextField from '@core/components/mui/TextField'
-import CustomAvatar from '@core/components/mui/Avatar'
+import OptionMenu from '@core/components/option-menu'
+import TableFilters from './TableFilters'
 
 // Util Imports
-import { getInitials } from '@/utils/getInitials'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
@@ -63,6 +56,15 @@ declare module '@tanstack/table-core' {
   interface FilterMeta {
     itemRank: RankingInfo
   }
+}
+
+export type UsersType = {
+  id?: number
+  fullName: string
+  email: string
+  date: string
+  category: string
+  city: string
 }
 
 type UsersTypeWithAction = UsersType & {
@@ -165,59 +167,29 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           </div>
         )
       }),
-      columnHelper.accessor('name', {
-        header: 'User',
+      columnHelper.accessor('email', {
+        header: 'Email',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
-            {getAvatar({ avatar: row.original.avatar, name: row.original.name })}
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.name}
+                {row.original.email}
               </Typography>
-              <Typography variant='body2'>{row.original.username}</Typography>
             </div>
           </div>
         )
       }),
-      columnHelper.accessor('role', {
-        header: 'Role',
-        cell: ({ row }) => (
-          <div className='flex items-center gap-2'>
-            {/* <Icon
-              className={userRoleObj[row.original.role].icon}
-              sx={{ color: `var(--mui-palette-${userRoleObj[row.original.role].color}-main)` }}
-            /> */}
-            <Typography className='capitalize' color='text.primary'>
-              {row.original.role}
-            </Typography>
-          </div>
-        )
+      columnHelper.accessor('category', {
+        header: 'Category',
+        cell: ({ row }) => <Typography>{row.original.category}</Typography>
       }),
-      columnHelper.accessor('currentPlan', {
-        header: 'Plan',
-        cell: ({ row }) => (
-          <Typography className='capitalize' color='text.primary'>
-            {row.original.currentPlan}
-          </Typography>
-        )
+      columnHelper.accessor('city', {
+        header: 'City',
+        cell: ({ row }) => <Typography>{row.original.date}</Typography>
       }),
-      columnHelper.accessor('billing', {
-        header: 'Billing',
-        cell: ({ row }) => <Typography>{row.original.billing}</Typography>
-      }),
-      columnHelper.accessor('status', {
-        header: 'Status',
-        cell: ({ row }) => (
-          <div className='flex items-center gap-3'>
-            <Chip
-              variant='tonal'
-              className='capitalize'
-              label={row.original.status}
-              color={userStatusObj[row.original.status]}
-              size='small'
-            />
-          </div>
-        )
+      columnHelper.accessor('date', {
+        header: 'Join Date',
+        cell: ({ row }) => <Typography>{row.original.date}</Typography>
       }),
       columnHelper.accessor('action', {
         header: 'Action',
@@ -226,7 +198,9 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
             <IconButton>
               <i className='tabler-trash text-[22px] text-textSecondary' />
             </IconButton>
-
+            <IconButton>
+              <i className='tabler-eye text-[22px] text-textSecondary' />
+            </IconButton>
             <OptionMenu
               iconClassName='text-[22px] text-textSecondary'
               options={[
@@ -279,16 +253,6 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues()
   })
-
-  const getAvatar = (params: Pick<UsersType, 'avatar' | 'name'>) => {
-    const { avatar, name } = params
-
-    if (avatar) {
-      return <CustomAvatar src={avatar} size={34} />
-    } else {
-      return <CustomAvatar size={34}>{getInitials(name as string)}</CustomAvatar>
-    }
-  }
 
   return (
     <>
@@ -396,7 +360,6 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           }}
         />
       </Card>
-      <AddUserDrawer open={addUserOpen} handleClose={() => setAddUserOpen(!addUserOpen)} />
     </>
   )
 }

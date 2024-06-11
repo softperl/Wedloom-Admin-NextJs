@@ -14,17 +14,17 @@ import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 
 // Components Imports
-import MenuItem from '@mui/material/MenuItem'
-
-import FormHelperText from '@mui/material/FormHelperText'
 
 import CustomTextField from '@core/components/mui/TextField'
 import { useRouter } from 'next/navigation'
+
+// Styled Component Imports
 
 type FormValues = {
   name: string
   slug: string
   parent: string
+  description: string
 }
 
 const FormValidationBasic = () => {
@@ -39,7 +39,8 @@ const FormValidationBasic = () => {
     defaultValues: {
       name: undefined,
       slug: undefined,
-      parent: undefined
+      parent: undefined,
+      description: undefined
     }
   })
 
@@ -82,22 +83,6 @@ const FormValidationBasic = () => {
                   />
                 )}
               />
-            </Grid>
-
-            <Grid item xs={12} sm={12}>
-              <Controller
-                name='parent'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <CustomTextField select fullWidth label='Parent' {...field} error={Boolean(errors.parent)}>
-                    <MenuItem value=''>Select Parent Category</MenuItem>
-                    <MenuItem value='Food'>Food</MenuItem>
-                    <MenuItem value='Gold'>Gold</MenuItem>
-                  </CustomTextField>
-                )}
-              />
-              {errors.parent && <FormHelperText error>This field is required.</FormHelperText>}
             </Grid>
 
             <Grid item xs={12} className='flex gap-4'>

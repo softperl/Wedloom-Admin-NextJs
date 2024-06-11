@@ -76,16 +76,26 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         <MenuItem href='/home' icon={<i className='tabler-smart-home' />}>
           Home
         </MenuItem>
-        <MenuItem href='/users' icon={<i className='tabler-smart-home' />}>
-          Users
-        </MenuItem>
-        <MenuItem href='/about' icon={<i className='tabler-info-circle' />}>
-          About
-        </MenuItem>
-        <SubMenu label={'Blogs'} icon={<i className='tabler-smart-home' />}>
+        <SubMenu label={'Blogs'} icon={<i className='tabler-brand-blogger' />}>
           <MenuItem href={`/blogs`}>All Blogs</MenuItem>
           <MenuItem href={`/blogs/new`}>Add New</MenuItem>
-          <MenuItem href={`/blogs/categories`}>Add Categories</MenuItem>
+          <MenuItem href={`/blogs/categories`}>Categories</MenuItem>
+          <MenuItem href={`/author`}>Author</MenuItem>
+        </SubMenu>
+        <SubMenu label={'All Users'} icon={<i className='tabler-users' />}>
+          <MenuItem href={`/users`}>Users</MenuItem>
+          <MenuItem href={`/vendors`}>Vendors</MenuItem>
+        </SubMenu>
+        <SubMenu label={'Settings'} icon={<i className='tabler-settings' />}>
+          <MenuItem href={`/vendorcategory`}>Vendor Category</MenuItem>
+          <MenuItem href={`/city`}>City</MenuItem>
+          <MenuItem href={`/checklist`}>User Checklist</MenuItem>
+          <MenuItem href={`/about`}>About</MenuItem>
+        </SubMenu>
+        <SubMenu label={'Terms & Condition'} icon={<i className='tabler-info-circle' />}>
+          <MenuItem href={`/terms`}>Terms</MenuItem>
+          <MenuItem href={`/policy`}>Privacy Policy</MenuItem>
+          <MenuItem href={`/refund`}>Refund Policy</MenuItem>
         </SubMenu>
       </Menu>
       {/* <Menu

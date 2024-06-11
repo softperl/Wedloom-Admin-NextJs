@@ -3,6 +3,8 @@
 // React Imports
 
 // MUI Imports
+import { useRouter } from 'next/navigation'
+
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -14,37 +16,27 @@ import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 
 // Components Imports
-import MenuItem from '@mui/material/MenuItem'
-
-import FormHelperText from '@mui/material/FormHelperText'
 
 import CustomTextField from '@core/components/mui/TextField'
-import FileUploaderRestrictions from '@core/components/mui/FileInputField'
 import EditorControlled from './Editor'
-import { useRouter } from 'next/navigation'
 
 // Styled Component Imports
 
 type FormValues = {
-  image: string
   title: string
-  description: string
-  category: string
 }
 
 const FormValidationBasic = () => {
   const router = useRouter()
+
   // Hooks
   const {
     control,
-    reset,
     handleSubmit,
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues: {
-      image: undefined,
-      title: undefined,
-      description: undefined
+      title: undefined
     }
   })
 
@@ -52,11 +44,11 @@ const FormValidationBasic = () => {
 
   return (
     <Card>
-      <CardHeader title='Add New Blog' />
+      <CardHeader title='Add New Terms' />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={6}>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={12}>
               <Controller
                 name='title'
                 control={control}
@@ -72,31 +64,9 @@ const FormValidationBasic = () => {
                 )}
               />
             </Grid>
-            <Grid item xs={6}>
-              <Controller
-                name='category'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <CustomTextField select fullWidth label='Category' {...field} error={Boolean(errors.category)}>
-                    <MenuItem value=''>Select Category</MenuItem>
-                    <MenuItem value='Food'>Food</MenuItem>
-                    <MenuItem value='Gold'>Gold</MenuItem>
-                  </CustomTextField>
-                )}
-              />
-              {errors.category && <FormHelperText error>This field is required.</FormHelperText>}
-            </Grid>
+
             <Grid item xs={12}>
               <EditorControlled />
-            </Grid>
-            <Grid item xs={12} sm={12}>
-              <Controller
-                name='image'
-                control={control}
-                rules={{ required: true }}
-                render={({}) => <FileUploaderRestrictions />}
-              />
             </Grid>
 
             <Grid item xs={12} className='flex gap-4'>
@@ -104,7 +74,7 @@ const FormValidationBasic = () => {
                 Submit
               </Button>
               <Button variant='tonal' color='secondary' type='button' onClick={() => router.back()}>
-                Cancle
+                Cancel
               </Button>
             </Grid>
           </Grid>

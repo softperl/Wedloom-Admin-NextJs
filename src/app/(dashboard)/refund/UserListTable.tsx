@@ -1,54 +1,46 @@
 'use client'
 
 // React Imports
-import { useEffect, useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 // Next Imports
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
 
 // MUI Imports
 import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
-import Checkbox from '@mui/material/Checkbox'
 import IconButton from '@mui/material/IconButton'
-import { styled } from '@mui/material/styles'
 import TablePagination from '@mui/material/TablePagination'
-import type { TextFieldProps } from '@mui/material/TextField'
-import MenuItem from '@mui/material/MenuItem'
+import Typography from '@mui/material/Typography'
+import { styled } from '@mui/material/styles'
 
 // Third-party Imports
-import classnames from 'classnames'
+import type { RankingInfo } from '@tanstack/match-sorter-utils'
 import { rankItem } from '@tanstack/match-sorter-utils'
+import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
-  useReactTable,
-  getFilteredRowModel,
+  getFacetedMinMaxValues,
   getFacetedRowModel,
   getFacetedUniqueValues,
-  getFacetedMinMaxValues,
+  getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel
+  getSortedRowModel,
+  useReactTable
 } from '@tanstack/react-table'
-import type { ColumnDef, FilterFn } from '@tanstack/react-table'
-import type { RankingInfo } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames'
 
-// Type Imports
-import type { ThemeColor } from '@core/types'
+import Button from '@mui/material/Button'
+
 import type { UsersType } from '@/types/apps/userTypes'
+import type { ThemeColor } from '@core/types'
 
 // Component Imports
-import TableFilters from './TableFilters'
-import AddUserDrawer from './AddUserDrawer'
-import OptionMenu from '@core/components/option-menu'
 import TablePaginationComponent from '@components/TablePaginationComponent'
-import CustomTextField from '@core/components/mui/TextField'
 import CustomAvatar from '@core/components/mui/Avatar'
+import OptionMenu from '@core/components/option-menu'
 
 // Util Imports
 import { getInitials } from '@/utils/getInitials'
@@ -64,8 +56,15 @@ declare module '@tanstack/table-core' {
     itemRank: RankingInfo
   }
 }
+export type BlogsType = {
+  id?: number
+  title: string
+  status: string
+  date: string
+  version: string
+}
 
-type UsersTypeWithAction = UsersType & {
+type UsersTypeWithAction = BlogsType & {
   action?: string
 }
 
@@ -93,35 +92,6 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-const DebouncedInput = ({
-  value: initialValue,
-  onChange,
-  debounce = 500,
-  ...props
-}: {
-  value: string | number
-  onChange: (value: string | number) => void
-  debounce?: number
-} & Omit<TextFieldProps, 'onChange'>) => {
-  // States
-  const [value, setValue] = useState(initialValue)
-
-  useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
-
-    return () => clearTimeout(timeout)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
-
-  return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
-}
-
 // Vars
 const userRoleObj: UserRoleType = {
   admin: { icon: 'tabler-crown', color: 'error' },
@@ -132,24 +102,19 @@ const userRoleObj: UserRoleType = {
 }
 
 const userStatusObj: UserStatusType = {
-  active: 'success',
-  pending: 'warning',
-  inactive: 'secondary'
+  published: 'success',
+  draft: 'secondary'
 }
 
 // Column Definitions
 const columnHelper = createColumnHelper<UsersTypeWithAction>()
 
-const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
+const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   // States
-  const [addUserOpen, setAddUserOpen] = useState(false)
   const [rowSelection, setRowSelection] = useState({})
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState(...[tableData])
   const [globalFilter, setGlobalFilter] = useState('')
-
-  // Hooks
-  const { lang: locale } = useParams()
 
   const columns = useMemo<ColumnDef<UsersTypeWithAction, any>[]>(
     () => [
@@ -165,45 +130,27 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           </div>
         )
       }),
-      columnHelper.accessor('name', {
-        header: 'User',
+      columnHelper.accessor('title', {
+        header: 'Title',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            {getAvatar({ avatar: row.original.avatar, name: row.original.name })}
+          <div className='flex items-center gap-4 w-72 line-clamp-1'>
             <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.name}
-              </Typography>
-              <Typography variant='body2'>{row.original.username}</Typography>
+              <Link href={`/${row.index + 1}`}>
+                <Typography color='text.primary' className='font-medium'>
+                  {row.original.title}
+                </Typography>
+              </Link>
             </div>
           </div>
         )
       }),
-      columnHelper.accessor('role', {
-        header: 'Role',
-        cell: ({ row }) => (
-          <div className='flex items-center gap-2'>
-            {/* <Icon
-              className={userRoleObj[row.original.role].icon}
-              sx={{ color: `var(--mui-palette-${userRoleObj[row.original.role].color}-main)` }}
-            /> */}
-            <Typography className='capitalize' color='text.primary'>
-              {row.original.role}
-            </Typography>
-          </div>
-        )
+      columnHelper.accessor('date', {
+        header: 'Date',
+        cell: ({ row }) => <Typography>{row.original.date}</Typography>
       }),
-      columnHelper.accessor('currentPlan', {
-        header: 'Plan',
-        cell: ({ row }) => (
-          <Typography className='capitalize' color='text.primary'>
-            {row.original.currentPlan}
-          </Typography>
-        )
-      }),
-      columnHelper.accessor('billing', {
-        header: 'Billing',
-        cell: ({ row }) => <Typography>{row.original.billing}</Typography>
+      columnHelper.accessor('version', {
+        header: 'Version',
+        cell: ({ row }) => <Typography>v{row.original.version}</Typography>
       }),
       columnHelper.accessor('status', {
         header: 'Status',
@@ -226,7 +173,11 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
             <IconButton>
               <i className='tabler-trash text-[22px] text-textSecondary' />
             </IconButton>
-
+            <IconButton>
+              <Link href={'/'} className='flex'>
+                <i className='tabler-eye text-[22px] text-textSecondary' />
+              </Link>
+            </IconButton>
             <OptionMenu
               iconClassName='text-[22px] text-textSecondary'
               options={[
@@ -252,7 +203,7 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
   )
 
   const table = useReactTable({
-    data: data as UsersType[],
+    data: data as BlogsType[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -280,55 +231,26 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues()
   })
 
-  const getAvatar = (params: Pick<UsersType, 'avatar' | 'name'>) => {
-    const { avatar, name } = params
+  const getAvatar = (params: Pick<UsersType, 'avatar' | 'fullName'>) => {
+    const { avatar, fullName } = params
 
     if (avatar) {
       return <CustomAvatar src={avatar} size={34} />
     } else {
-      return <CustomAvatar size={34}>{getInitials(name as string)}</CustomAvatar>
+      return <CustomAvatar size={34}>{getInitials(fullName as string)}</CustomAvatar>
     }
   }
 
   return (
     <>
       <Card>
-        <CardHeader title='Filters' className='pbe-4' />
-        <TableFilters setData={setData} tableData={tableData} />
-        <div className='flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4'>
-          <CustomTextField
-            select
-            value={table.getState().pagination.pageSize}
-            onChange={e => table.setPageSize(Number(e.target.value))}
-            className='is-[70px]'
-          >
-            <MenuItem value='10'>10</MenuItem>
-            <MenuItem value='25'>25</MenuItem>
-            <MenuItem value='50'>50</MenuItem>
-          </CustomTextField>
-          <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4'>
-            <DebouncedInput
-              value={globalFilter ?? ''}
-              onChange={value => setGlobalFilter(String(value))}
-              placeholder='Search User'
-              className='is-full sm:is-auto'
-            />
-            <Button
-              color='secondary'
-              variant='tonal'
-              startIcon={<i className='tabler-upload' />}
-              className='is-full sm:is-auto'
-            >
-              Export
-            </Button>
-            <Button
-              variant='contained'
-              startIcon={<i className='tabler-plus' />}
-              onClick={() => setAddUserOpen(!addUserOpen)}
-              className='is-full sm:is-auto'
-            >
-              Add New User
-            </Button>
+        <div className='p-5'>
+          <div className='flex justify-end items-center'>
+            <Link href={'/refund/new'}>
+              <Button variant='contained' startIcon={<i className='tabler-plus' />} className='is-full sm:is-auto'>
+                Add New
+              </Button>
+            </Link>
           </div>
         </div>
         <div className='overflow-x-auto'>
@@ -396,7 +318,6 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           }}
         />
       </Card>
-      <AddUserDrawer open={addUserOpen} handleClose={() => setAddUserOpen(!addUserOpen)} />
     </>
   )
 }

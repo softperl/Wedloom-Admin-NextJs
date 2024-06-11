@@ -1,14 +1,6 @@
 // Component Imports
 import { fetchFn } from '@/lib/servet-utils'
-import UserList from '@views/apps/user/list'
-
-// MUI Imports
-import Grid from '@mui/material/Grid'
-
-// Type Imports
-import type { UsersType } from '@/types/apps/userTypes'
-import UserListCards from './UserListCards'
-import UserListTable from './UserListTable'
+import UserList from './UserListTable'
 
 const UserListApp = async ({
   searchParams
@@ -25,7 +17,6 @@ const UserListApp = async ({
   let data = null
   let totalPages = 1
   let total = 0
-
   try {
     data = await fetchFn(`/admin/auth/get-all-users?q=${q}&page=${currentPage}&perPage=${perPage}`, {
       method: 'GET',
@@ -42,16 +33,7 @@ const UserListApp = async ({
     console.log(error)
   }
 
-  return (
-    <Grid container spacing={6}>
-      <Grid item xs={12}>
-        <UserListCards />
-      </Grid>
-      <Grid item xs={12}>
-        <UserListTable tableData={data?.users || []} />
-      </Grid>
-    </Grid>
-  )
+  return <UserList tableData={data?.users || []} />
 }
 
 export default UserListApp
