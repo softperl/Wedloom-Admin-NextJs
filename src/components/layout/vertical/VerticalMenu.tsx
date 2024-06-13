@@ -82,6 +82,10 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           <MenuItem href={`/blogs/categories`}>Categories</MenuItem>
           <MenuItem href={`/author`}>Author</MenuItem>
         </SubMenu>
+        <SubMenu label={'Question'} icon={<i className='tabler-question-mark' />}>
+          <MenuItem href={`/question`}>All Question</MenuItem>
+          <MenuItem href={`/question/new`}>Add New</MenuItem>
+        </SubMenu>
         <SubMenu label={'All Users'} icon={<i className='tabler-users' />}>
           <MenuItem href={`/users`}>Users</MenuItem>
           <MenuItem href={`/vendors`}>Vendors</MenuItem>

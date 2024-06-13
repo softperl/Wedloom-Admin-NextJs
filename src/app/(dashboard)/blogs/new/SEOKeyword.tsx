@@ -2,7 +2,7 @@ import Tagify from '@yaireo/tagify'
 import '@yaireo/tagify/dist/tagify.css'
 import { useEffect, useRef } from 'react'
 
-const Tag = ({ setValue, ...field }: any) => {
+const SEOKeyword = ({ setValue, ...field }: any) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -19,9 +19,9 @@ const Tag = ({ setValue, ...field }: any) => {
         }
 
         if (Array.isArray(tagObjects)) {
-          const tags = tagObjects.map((tag: { value: string }) => tag.value)
-          console.log('tags:', tags)
-          setValue('tags', tags)
+          const seokeywords = tagObjects.map((tag: { value: string }) => tag.value)
+          console.log('seokeywords:', seokeywords)
+          setValue('seokeywords', seokeywords)
         }
       })
     }
@@ -42,4 +42,4 @@ const Tag = ({ setValue, ...field }: any) => {
   )
 }
 
-export default Tag
+export default SEOKeyword

@@ -1,7 +1,5 @@
 'use client'
 
-// React Imports
-
 // MUI Imports
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -15,18 +13,20 @@ import { toast } from 'react-toastify'
 
 // Components Imports
 import MenuItem from '@mui/material/MenuItem'
-
 import FormHelperText from '@mui/material/FormHelperText'
-
+import useImagePreview from '@/lib/hooks/useImagePreview'
 import CustomTextField from '@core/components/mui/TextField'
-import FileUploaderRestrictions from '@core/components/mui/FileInputField'
-import EditorControlled from './Editor'
-import { useRouter } from 'next/navigation'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
+import Typography from '@mui/material/Typography'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import EditorControlled from './Editor'
 import Tag from './Tag'
-
-// Styled Component Imports
+import SEOKeyword from './SEOKeyword'
+import { useEffect, useState } from 'react'
+import { slugify } from '@/lib/utils'
+import { formatDate } from 'date-fns/format'
 
 type FormValues = {
   image: string
@@ -36,16 +36,23 @@ type FormValues = {
   category: string
   seokeywords: string[]
   status: string
+  author: string
   tags: string[]
 }
 
 const FormValidationBasic = () => {
-  const router = useRouter()
+  // State to hold the full URL
+  const [fullUrl, setFullUrl] = useState<string>('')
   // Hooks
+  const { fileInputRef, imageSrc, selectedFile, handleFileChange, handleRemove } = useImagePreview()
+  const router = useRouter()
+  const pathname = usePathname()
+
   const {
     control,
-    reset,
+    watch,
     handleSubmit,
+    setValue,
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues: {
@@ -55,7 +62,8 @@ const FormValidationBasic = () => {
       description: '',
       seokeywords: [],
       category: undefined,
-      status: 'Draft'
+      status: 'Published',
+      author: 'Admin'
     }
   })
 
@@ -63,6 +71,40 @@ const FormValidationBasic = () => {
     console.log(value)
     toast.success('Form Submitted')
   }
+
+  // Effect to get the full URL on client-side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const protocol = window.location.protocol
+      const hostname = window.location.hostname
+      const port = window.location.port ? `:${window.location.port}` : ''
+      setFullUrl(`${protocol}//${hostname}${port}${pathname}`)
+    }
+  }, [router])
+
+  const shortDes = watch('shortDescription')
+  const seokeywordsArray = watch('seokeywords')
+
+  console.log('seokeywordsArray', seokeywordsArray)
+
+  const seoDescription = () => {
+    if (!shortDes || !Array.isArray(seokeywordsArray) || seokeywordsArray.length === 0) {
+      return shortDes
+    }
+
+    let highlightedDescription = shortDes
+
+    seokeywordsArray.forEach(tag => {
+      const regex = new RegExp(`\\b(${tag})\\b`, 'gi')
+      highlightedDescription = highlightedDescription.replace(regex, `<b>${tag}</b>`)
+    })
+
+    return highlightedDescription
+  }
+
+  useEffect(() => {
+    seoDescription()
+  }, [seokeywordsArray])
 
   return (
     <Card>
@@ -163,64 +205,124 @@ const FormValidationBasic = () => {
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => {
-                  return (
-                    <CustomTextField
-                      {...field}
-                      fullWidth
-                      label='SEO Keywords'
-                      placeholder='SEO Keywords'
-                      {...(errors.seokeywords && { error: true, helperText: 'This field is required.' })}
-                    />
-                  )
+                  return <SEOKeyword {...field} setValue={setValue} label='SEO Keywords' />
                 }}
               />
             </Grid>
-            <Grid item xs={12}>
-              <Controller
-                name='tags'
-                control={control}
-                render={({ field }) => {
-                  return <Tag {...field} label='Tags' />
-                }}
-              />
+            <Grid item container spacing={6}>
+              <Grid item container xs={12} md={6} direction={'column'} spacing={6}>
+                <Grid item>
+                  <Controller
+                    name='tags'
+                    control={control}
+                    render={({ field }) => {
+                      return <Tag {...field} setValue={setValue} label='Tags' />
+                    }}
+                  />
+                </Grid>
+                <Grid item container spacing={6}>
+                  <Grid item xs={6}>
+                    <Controller
+                      name='status'
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <CustomTextField select fullWidth label='Status' {...field} error={Boolean(errors.category)}>
+                          <MenuItem value=''>Select Status</MenuItem>
+                          <MenuItem value='Published'>Published</MenuItem>
+                          <MenuItem value='Draft'>Draft</MenuItem>
+                        </CustomTextField>
+                      )}
+                    />
+                    {errors.category && <FormHelperText error>This field is required.</FormHelperText>}
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Controller
+                      name='author'
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <CustomTextField select fullWidth label='Author' {...field} error={Boolean(errors.category)}>
+                          <MenuItem value=''>Select author</MenuItem>
+                          <MenuItem value='Admin'>Admin</MenuItem>
+                          <MenuItem value='Shipon'>Shipon</MenuItem>
+                          <MenuItem value='Junayed'>Junayed</MenuItem>
+                        </CustomTextField>
+                      )}
+                    />
+                    {errors.category && <FormHelperText error>This field is required.</FormHelperText>}
+                  </Grid>
+                </Grid>
+                <Grid item container>
+                  <Grid item xs={6}>
+                    <FormControlLabel control={<Switch defaultChecked name='featured' />} label='Is Featured' />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControlLabel control={<Switch defaultChecked name='comments' />} label='Comments' />
+                  </Grid>
+                </Grid>
+              </Grid>
+              <Grid item container xs={12} md={6} spacing={6}>
+                <Grid item>
+                  <input
+                    type='file'
+                    accept='image/*'
+                    onChange={handleFileChange}
+                    ref={fileInputRef}
+                    className='hidden'
+                  />
+                  {imageSrc ? (
+                    <div className='relative aspect-auto w-60'>
+                      <img
+                        src={imageSrc as string}
+                        alt='Preview'
+                        className='aspect-auto w-60 object-contain bg-gray-100 rounded-md mt-6'
+                      />
+                      <i onClick={handleRemove} className='tabler-trash absolute right-2 top-8 text-red-500'></i>
+                    </div>
+                  ) : (
+                    <div className='aspect-video w-60 border rounded-md flex items-center justify-center cursor-pointer text-center mt-6'>
+                      Preview
+                    </div>
+                  )}
+                </Grid>
+                <Grid item className='flex items-center justify-center'>
+                  <Button
+                    variant='contained'
+                    onClick={() => {
+                      fileInputRef.current?.click()
+                    }}
+                    startIcon={<i className='tabler-library-photo' />}
+                  >
+                    Choose File
+                  </Button>
+                </Grid>
+              </Grid>
             </Grid>
             <Grid item xs={12}>
               <EditorControlled />
             </Grid>
-            <Grid item xs={12} sm={12}>
-              <Controller
-                name='image'
-                control={control}
-                rules={{ required: true }}
-                render={({}) => <input type='file' />}
-              />
+            <CardHeader title='SEO Preview' className='pb-0' />
+            <Grid item xs={12}>
+              <CardContent className='shadow'>
+                <Typography variant='h5' className='mbe-2'>
+                  {watch('title')}
+                </Typography>
+                <Link href='' className='text-green-700 text-sm'>
+                  {fullUrl}/{slugify(watch('title'))}
+                </Link>
+                <Typography className='mbe-2' color='text.secondary'>
+                  <span>{formatDate(Date(), 'PPPP')}</span> -{' '}
+                  <span dangerouslySetInnerHTML={{ __html: seoDescription() }} />
+                </Typography>
+              </CardContent>
             </Grid>
-            <Grid item xs={2}>
-              <Controller
-                name='status'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <CustomTextField select fullWidth label='Status' {...field} error={Boolean(errors.category)}>
-                    <MenuItem value=''>Select Status</MenuItem>
-                    <MenuItem value='Published'>Published</MenuItem>
-                    <MenuItem value='Draft'>Draft</MenuItem>
-                  </CustomTextField>
-                )}
-              />
-              {errors.category && <FormHelperText error>This field is required.</FormHelperText>}
-            </Grid>
-            <Grid item xs={2}>
-              <FormControlLabel control={<Switch defaultChecked name='featured' />} label='Is Featured' />
-              <FormControlLabel control={<Switch defaultChecked name='comments' />} label='Comments' />
-            </Grid>
-
             <Grid item xs={12} className='flex gap-4'>
               <Button variant='contained' type='submit'>
                 Submit
               </Button>
               <Button variant='tonal' color='secondary' type='button' onClick={() => router.back()}>
-                Cancle
+                Cancel
               </Button>
             </Grid>
           </Grid>
