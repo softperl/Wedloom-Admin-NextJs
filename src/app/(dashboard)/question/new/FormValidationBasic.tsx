@@ -18,15 +18,11 @@ import MenuItem from '@mui/material/MenuItem'
 import { usePathname, useRouter } from 'next/navigation'
 
 type FormValues = {
-  image: string
-  title: string
-  shortDescription: string
-  description: string
-  category: string
-  seokeywords: string[]
-  status: string
-  author: string
-  tags: string[]
+  question: string
+  questionType: string
+  vendorType: string
+  required: boolean
+  shortQuestion: string
 }
 
 const FormValidationBasic = () => {
@@ -41,14 +37,11 @@ const FormValidationBasic = () => {
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues: {
-      image: undefined,
-      title: '',
-      shortDescription: '',
-      description: '',
-      seokeywords: [],
-      category: undefined,
-      status: 'Published',
-      author: 'Admin'
+      question: '',
+      questionType: '',
+      vendorType: '',
+      required: true,
+      shortQuestion: ''
     }
   })
 
@@ -59,36 +52,40 @@ const FormValidationBasic = () => {
 
   return (
     <Card>
-      <CardHeader title='Add New Question' />
+      <CardHeader question='Add New Question' />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={6}>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <Controller
-                name='title'
+                name='question'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => {
-                  const length = field.value ? Number(field.value.length) : 0
-                  const count = 145 - length
-                  const handleChange = (event: any) => {
-                    if (event.target.value.length <= 400) {
-                      field.onChange(event)
-                    }
-                  }
                   return (
-                    <div className='relative'>
-                      <CustomTextField
-                        {...field}
-                        fullWidth
-                        label='Title'
-                        onChange={handleChange}
-                        {...(errors.title && { error: true, helperText: 'This field is required.' })}
-                      />
-                      <label className='absolute -top-0.5 right-0 z-10 mb-1 text-sm'>
-                        You have remains {count} character
-                      </label>
-                    </div>
+                    <CustomTextField
+                      {...field}
+                      fullWidth
+                      label='Question'
+                      {...(errors.question && { error: true, helperText: 'This field is required.' })}
+                    />
+                  )
+                }}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name='shortQuestion'
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => {
+                  return (
+                    <CustomTextField
+                      {...field}
+                      fullWidth
+                      label='shortQuestion'
+                      {...(errors.shortQuestion && { error: true, helperText: 'This field is required.' })}
+                    />
                   )
                 }}
               />
@@ -96,18 +93,27 @@ const FormValidationBasic = () => {
 
             <Grid item xs={6}>
               <Controller
-                name='category'
+                name='questionType'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <CustomTextField select fullWidth label='Category' {...field} error={Boolean(errors.category)}>
-                    <MenuItem value=''>Select Category</MenuItem>
-                    <MenuItem value='Food'>Food</MenuItem>
-                    <MenuItem value='Gold'>Gold</MenuItem>
+                  <CustomTextField
+                    select
+                    fullWidth
+                    label='Question Type'
+                    {...field}
+                    error={Boolean(errors.questionType)}
+                  >
+                    <MenuItem value=''>Select Question Type</MenuItem>
+                    <MenuItem value='Food'>Short</MenuItem>
+                    <MenuItem value='Long'>Long</MenuItem>
+                    <MenuItem value='Multiple Choice'>Multiple Choice</MenuItem>
+                    <MenuItem value='Long'>Long</MenuItem>
+                    <MenuItem value='Radio'>Radio</MenuItem>
                   </CustomTextField>
                 )}
               />
-              {errors.category && <FormHelperText error>This field is required.</FormHelperText>}
+              {errors.questionType && <FormHelperText error>This field is required.</FormHelperText>}
             </Grid>
 
             <Grid item xs={12} className='flex gap-4'>
