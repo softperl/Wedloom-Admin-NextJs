@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 // Next Imports
 import Link from 'next/link'
@@ -36,6 +36,7 @@ import Button from '@mui/material/Button'
 
 import type { UsersType } from '@/types/apps/userTypes'
 import type { ThemeColor } from '@core/types'
+import type { TextFieldProps } from '@mui/material/TextField'
 
 // Component Imports
 import TablePaginationComponent from '@components/TablePaginationComponent'
@@ -48,6 +49,10 @@ import { getInitials } from '@/utils/getInitials'
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 import PermissionDialog from '@/components/dialogs/PermissionDialog'
+import MenuItem from '@mui/material/MenuItem'
+import CustomTextField from '@/@core/components/mui/TextField'
+import TableFilters from './TableFilters'
+import CardHeader from '@mui/material/CardHeader'
 
 declare module '@tanstack/table-core' {
   interface FilterFns {
@@ -57,16 +62,16 @@ declare module '@tanstack/table-core' {
     itemRank: RankingInfo
   }
 }
-export type BlogsType = {
+export type QuestionType = {
   id: string
   question: string
-  questionType: string
-  vendorType: string
+  type: string
+  vendor: string
   required: boolean
   date: string
 }
 
-type UsersTypeWithAction = BlogsType & {
+type UsersTypeWithAction = QuestionType & {
   action?: string
 }
 
@@ -94,6 +99,35 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
+const DebouncedInput = ({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: {
+  value: string | number
+  onChange: (value: string | number) => void
+  debounce?: number
+} & Omit<TextFieldProps, 'onChange'>) => {
+  // States
+  const [value, setValue] = useState(initialValue)
+
+  useEffect(() => {
+    setValue(initialValue)
+  }, [initialValue])
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onChange(value)
+    }, debounce)
+
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
+  return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
+}
+
 // Vars
 const userRoleObj: UserRoleType = {
   admin: { icon: 'tabler-crown', color: 'error' },
@@ -111,7 +145,7 @@ const userStatusObj: UserStatusType = {
 // Column Definitions
 const columnHelper = createColumnHelper<UsersTypeWithAction>()
 
-const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
+const UserListTable = ({ tableData }: { tableData?: QuestionType[] }) => {
   // States
   const [open, setOpen] = useState(false)
   const [editValue, setEditValue] = useState<string>('')
@@ -119,6 +153,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState(...[tableData])
   const [globalFilter, setGlobalFilter] = useState('')
+  const [addUserOpen, setAddUserOpen] = useState(false)
 
   const columns = useMemo<ColumnDef<UsersTypeWithAction, any>[]>(
     () => [
@@ -147,25 +182,25 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
           </div>
         )
       }),
-      columnHelper.accessor('questionType', {
-        header: 'Question Type',
+      columnHelper.accessor('type', {
+        header: 'Type',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium capitalize'>
-                {row.original.questionType}
+                {row.original.type}
               </Typography>
             </div>
           </div>
         )
       }),
-      columnHelper.accessor('vendorType', {
-        header: 'Vendor Type',
+      columnHelper.accessor('vendor', {
+        header: 'Vendor',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium capitalize'>
-                {row.original.vendorType}
+                {row.original.vendor}
               </Typography>
             </div>
           </div>
@@ -194,9 +229,6 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <IconButton onClick={() => handleDelete(row.original.id)}>
-              <i className='tabler-trash text-[22px] text-textSecondary' />
-            </IconButton>
             <IconButton>
               <Link href={'/'} className='flex'>
                 <i className='tabler-eye text-[22px] text-textSecondary' />
@@ -206,13 +238,18 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
               iconClassName='text-[22px] text-textSecondary'
               options={[
                 {
-                  text: 'Download',
-                  icon: 'tabler-download text[22px]',
+                  text: 'Edit',
+                  icon: 'tabler-edit text-[22px]',
                   menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
                 },
                 {
-                  text: 'Edit',
-                  icon: 'tabler-edit text-[22px]',
+                  text: <span onClick={() => handleDelete(row.original.id)}>Delete</span>,
+                  icon: (
+                    <i
+                      onClick={() => handleDelete(row.original.id)}
+                      className='tabler-trash text-[22px] text-textSecondary'
+                    />
+                  ),
                   menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
                 }
               ]}
@@ -227,7 +264,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   )
 
   const table = useReactTable({
-    data: data as BlogsType[],
+    data: data as QuestionType[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter
@@ -272,8 +309,38 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   return (
     <>
       <Card>
-        <div className='p-5'>
-          <div className='flex justify-end items-center'>
+        <CardHeader title='Questions' className='pbe-4' />
+        <TableFilters
+          setData={setData}
+          //@ts-ignore
+          tableData={tableData}
+        />
+        <div className='flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4'>
+          <CustomTextField
+            select
+            value={table.getState().pagination.pageSize}
+            onChange={e => table.setPageSize(Number(e.target.value))}
+            className='is-[70px]'
+          >
+            <MenuItem value='10'>10</MenuItem>
+            <MenuItem value='25'>25</MenuItem>
+            <MenuItem value='50'>50</MenuItem>
+          </CustomTextField>
+          <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4'>
+            <DebouncedInput
+              value={globalFilter ?? ''}
+              onChange={value => setGlobalFilter(String(value))}
+              placeholder='Search User'
+              className='is-full sm:is-auto'
+            />
+            <Button
+              color='secondary'
+              variant='tonal'
+              startIcon={<i className='tabler-upload' />}
+              className='is-full sm:is-auto'
+            >
+              Export
+            </Button>
             <Link href={'/question/new'}>
               <Button variant='contained' startIcon={<i className='tabler-plus' />} className='is-full sm:is-auto'>
                 Add New Question

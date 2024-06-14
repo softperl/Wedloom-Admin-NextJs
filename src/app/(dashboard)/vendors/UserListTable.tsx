@@ -48,6 +48,10 @@ import TableFilters from './TableFilters'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
+import { formatDate } from 'date-fns/format'
+import PermissionDialog from '@/components/dialogs/PermissionDialog'
+import Link from 'next/link'
+import Chip from '@mui/material/Chip'
 
 declare module '@tanstack/table-core' {
   interface FilterFns {
@@ -60,13 +64,13 @@ declare module '@tanstack/table-core' {
 
 export type UsersType = {
   id?: number
-  fullName: string
+  brand: string
+  name: string
   email: string
-  date: string
+  createdAt: string
   category: string
   city: string
-  eventDate: string
-  eventType: string
+  status: boolean
 }
 
 type UsersTypeWithAction = UsersType & {
@@ -137,8 +141,7 @@ const userRoleObj: UserRoleType = {
 
 const userStatusObj: UserStatusType = {
   active: 'success',
-  pending: 'warning',
-  inactive: 'secondary'
+  block: 'warning'
 }
 
 // Column Definitions
@@ -146,6 +149,8 @@ const columnHelper = createColumnHelper<UsersTypeWithAction>()
 
 const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
   // States
+  const [open, setOpen] = useState(false)
+  const [editValue, setEditValue] = useState<string>('')
   const [addUserOpen, setAddUserOpen] = useState(false)
   const [rowSelection, setRowSelection] = useState({})
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -169,13 +174,25 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           </div>
         )
       }),
-      columnHelper.accessor('fullName', {
-        header: 'Name',
+      columnHelper.accessor('brand', {
+        header: 'Brand Name',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium'>
-                {row.original.fullName}
+                {row.original.brand}
+              </Typography>
+            </div>
+          </div>
+        )
+      }),
+      columnHelper.accessor('name', {
+        header: 'User Name',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-4'>
+            <div className='flex flex-col'>
+              <Typography color='text.primary' className='font-medium'>
+                {row.original.name}
               </Typography>
             </div>
           </div>
@@ -193,39 +210,58 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           </div>
         )
       }),
-      columnHelper.accessor('date', {
+
+      columnHelper.accessor('category', {
+        header: 'Category',
+        cell: ({ row }) => <Typography>{row.original.category}</Typography>
+      }),
+      columnHelper.accessor('city', {
+        header: 'City',
+        cell: ({ row }) => <Typography>{row.original.city}</Typography>
+      }),
+      columnHelper.accessor('createdAt', {
         header: 'Join Date',
-        cell: ({ row }) => <Typography>{row.original.date}</Typography>
+        cell: ({ row }) => <Typography>{formatDate(row.original.createdAt, 'ii MMM Y')}</Typography>
       }),
-      columnHelper.accessor('eventDate', {
-        header: 'Event Date',
-        cell: ({ row }) => <Typography>{row.original.eventDate}</Typography>
-      }),
-      columnHelper.accessor('eventType', {
-        header: 'Event Type',
-        cell: ({ row }) => <Typography>{row.original.eventType}</Typography>
+      columnHelper.accessor('status', {
+        header: 'Status',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-3'>
+            <Chip
+              variant='tonal'
+              className='capitalize'
+              label={row.original.status ? 'block' : 'active'}
+              color={userStatusObj[row.original.status ? 'block' : 'active']}
+              size='small'
+            />
+          </div>
+        )
       }),
       columnHelper.accessor('action', {
         header: 'Action',
-        cell: () => (
+        cell: ({ row }) => (
           <div className='flex items-center'>
             <IconButton>
-              <i className='tabler-trash text-[22px] text-textSecondary' />
-            </IconButton>
-            <IconButton>
-              <i className='tabler-eye text-[22px] text-textSecondary' />
+              <Link href={'/'} className='flex'>
+                <i className='tabler-eye text-[22px] text-textSecondary' />
+              </Link>
             </IconButton>
             <OptionMenu
               iconClassName='text-[22px] text-textSecondary'
               options={[
                 {
-                  text: 'Download',
-                  icon: 'tabler-download text-[22px]',
+                  text: 'Block',
+                  icon: 'tabler-alert-circle-off text-[22px]',
                   menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
                 },
                 {
-                  text: 'Edit',
-                  icon: 'tabler-edit text-[22px]',
+                  text: <span onClick={() => handleDelete(row.original.id)}>Delete</span>,
+                  icon: (
+                    <i
+                      onClick={() => handleDelete(row.original.id)}
+                      className='tabler-trash text-[22px] text-textSecondary'
+                    />
+                  ),
                   menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
                 }
               ]}
@@ -268,11 +304,20 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues()
   })
 
+  const handleDelete: Function = (value: string) => {
+    setOpen(true)
+    setEditValue(value)
+  }
   return (
     <>
       <Card>
-        <CardHeader title='Filters' className='pbe-4' />
-        <TableFilters setData={setData} tableData={tableData} />
+        <CardHeader title='Vendors' className='pbe-4' />
+
+        <TableFilters
+          setData={setData}
+          //@ts-ignore
+          tableData={tableData}
+        />
         <div className='flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4'>
           <CustomTextField
             select
@@ -299,14 +344,11 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
             >
               Export
             </Button>
-            <Button
-              variant='contained'
-              startIcon={<i className='tabler-plus' />}
-              onClick={() => setAddUserOpen(!addUserOpen)}
-              className='is-full sm:is-auto'
-            >
-              Add New User
-            </Button>
+            <Link href={'/vendors/new'}>
+              <Button variant='contained' startIcon={<i className='tabler-plus' />} className='is-full sm:is-auto'>
+                Add New Vendor
+              </Button>
+            </Link>
           </div>
         </div>
         <div className='overflow-x-auto'>
@@ -374,6 +416,7 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           }}
         />
       </Card>
+      <PermissionDialog open={open} setOpen={setOpen} data={editValue} />
     </>
   )
 }

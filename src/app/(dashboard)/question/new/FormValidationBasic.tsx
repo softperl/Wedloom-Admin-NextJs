@@ -22,9 +22,9 @@ type FormValues = {
   questionType: string
   vendorType: string
   required: boolean
-  shortQuestion: string
+  labelName: string
   inputType: string
-  showShortQuestion: boolean
+  showLabel: boolean
 }
 
 const FormValidationBasic = () => {
@@ -41,11 +41,11 @@ const FormValidationBasic = () => {
     defaultValues: {
       question: '',
       questionType: '',
-      vendorType: 'All',
+      vendorType: '',
       required: true,
-      shortQuestion: '',
+      labelName: '',
       inputType: 'Text + Number',
-      showShortQuestion: true
+      showLabel: true
     }
   })
 
@@ -56,7 +56,7 @@ const FormValidationBasic = () => {
 
   return (
     <Card>
-      <CardHeader question='Add New Question' />
+      <CardHeader title='Add New Question' />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={6}>
@@ -94,8 +94,8 @@ const FormValidationBasic = () => {
                     <MenuItem value='Food'>Short</MenuItem>
                     <MenuItem value='Long'>Long</MenuItem>
                     <MenuItem value='Multiple Choice'>Multiple Choice</MenuItem>
-                    <MenuItem value='Long'>Long</MenuItem>
                     <MenuItem value='Radio'>Radio</MenuItem>
+                    <MenuItem value='File'>File</MenuItem>
                   </CustomTextField>
                 )}
               />
@@ -109,7 +109,6 @@ const FormValidationBasic = () => {
                 render={({ field }) => (
                   <CustomTextField select fullWidth label='Vendor Type' {...field} error={Boolean(errors.vendorType)}>
                     <MenuItem value=''>Select Vendor Type</MenuItem>
-                    <MenuItem value='All'>All</MenuItem>
                     <MenuItem value='Photographer'>Photographer</MenuItem>
                     <MenuItem value='Beauty'>Beauty</MenuItem>
                     <MenuItem value='Developer'>Developer</MenuItem>
@@ -127,7 +126,7 @@ const FormValidationBasic = () => {
                 render={({ field }) => (
                   <CustomTextField select fullWidth label='Is Required' {...field} error={Boolean(errors.required)}>
                     <MenuItem value=''>Select</MenuItem>
-                    <MenuItem value='false'>Not Required</MenuItem>
+                    <MenuItem value='false'>Optional</MenuItem>
                     <MenuItem value='true'>Required</MenuItem>
                   </CustomTextField>
                 )}
@@ -142,9 +141,10 @@ const FormValidationBasic = () => {
                 render={({ field }) => (
                   <CustomTextField select fullWidth label='Input Type' {...field} error={Boolean(errors.inputType)}>
                     <MenuItem value=''>Select Input Type</MenuItem>
+                    <MenuItem value='Text'>Text</MenuItem>
+                    <MenuItem value='Number'>Number</MenuItem>
                     <MenuItem value='Text + Number'>Text + Number</MenuItem>
                     <MenuItem value='File'>File</MenuItem>
-                    <MenuItem value='Number'>Number</MenuItem>
                   </CustomTextField>
                 )}
               />
@@ -152,7 +152,7 @@ const FormValidationBasic = () => {
             </Grid>
             <Grid item xs={6}>
               <Controller
-                name='shortQuestion'
+                name='labelName'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => {
@@ -160,8 +160,8 @@ const FormValidationBasic = () => {
                     <CustomTextField
                       {...field}
                       fullWidth
-                      label='Short Question'
-                      {...(errors.shortQuestion && { error: true, helperText: 'This field is required.' })}
+                      label='Label Name'
+                      {...(errors.labelName && { error: true, helperText: 'This field is required.' })}
                     />
                   )
                 }}
@@ -169,18 +169,12 @@ const FormValidationBasic = () => {
             </Grid>
             <Grid item xs={6}>
               <Controller
-                name='showShortQuestion'
+                name='showLabel'
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
-                  <CustomTextField
-                    select
-                    fullWidth
-                    label='Show Short Question'
-                    {...field}
-                    error={Boolean(errors.showShortQuestion)}
-                  >
-                    <MenuItem value=''>Select Show Short Question</MenuItem>
+                  <CustomTextField select fullWidth label='Show Label' {...field} error={Boolean(errors.showLabel)}>
+                    <MenuItem value=''>Select Show Label</MenuItem>
                     <MenuItem value='true'>Yes</MenuItem>
                     <MenuItem value='false'>No</MenuItem>
                   </CustomTextField>

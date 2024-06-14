@@ -1,6 +1,8 @@
 // Component Imports
 import { fetchFn } from '@/lib/servet-utils'
-import UserList from './UserListTable'
+import Grid from '@mui/material/Grid'
+import UserListCards from './UserListCards'
+import UserListTable from './UserListTable'
 
 const UserListApp = async ({
   searchParams
@@ -33,7 +35,16 @@ const UserListApp = async ({
     console.log(error)
   }
 
-  return <UserList tableData={data?.users || []} />
+  return (
+    <Grid container spacing={6}>
+      <Grid item xs={12}>
+        <UserListCards />
+      </Grid>
+      <Grid item xs={12}>
+        <UserListTable tableData={data?.users || []} />
+      </Grid>
+    </Grid>
+  )
 }
 
 export default UserListApp
