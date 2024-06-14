@@ -23,6 +23,8 @@ type FormValues = {
   vendorType: string
   required: boolean
   shortQuestion: string
+  inputType: string
+  showShortQuestion: boolean
 }
 
 const FormValidationBasic = () => {
@@ -39,9 +41,11 @@ const FormValidationBasic = () => {
     defaultValues: {
       question: '',
       questionType: '',
-      vendorType: '',
+      vendorType: 'All',
       required: true,
-      shortQuestion: ''
+      shortQuestion: '',
+      inputType: 'Text + Number',
+      showShortQuestion: true
     }
   })
 
@@ -75,24 +79,6 @@ const FormValidationBasic = () => {
             </Grid>
             <Grid item xs={6}>
               <Controller
-                name='shortQuestion'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => {
-                  return (
-                    <CustomTextField
-                      {...field}
-                      fullWidth
-                      label='shortQuestion'
-                      {...(errors.shortQuestion && { error: true, helperText: 'This field is required.' })}
-                    />
-                  )
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={6}>
-              <Controller
                 name='questionType'
                 control={control}
                 rules={{ required: true }}
@@ -115,7 +101,93 @@ const FormValidationBasic = () => {
               />
               {errors.questionType && <FormHelperText error>This field is required.</FormHelperText>}
             </Grid>
-
+            <Grid item xs={6}>
+              <Controller
+                name='vendorType'
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <CustomTextField select fullWidth label='Vendor Type' {...field} error={Boolean(errors.vendorType)}>
+                    <MenuItem value=''>Select Vendor Type</MenuItem>
+                    <MenuItem value='All'>All</MenuItem>
+                    <MenuItem value='Photographer'>Photographer</MenuItem>
+                    <MenuItem value='Beauty'>Beauty</MenuItem>
+                    <MenuItem value='Developer'>Developer</MenuItem>
+                    <MenuItem value='Venue'>Venue</MenuItem>
+                  </CustomTextField>
+                )}
+              />
+              {errors.vendorType && <FormHelperText error>This field is required.</FormHelperText>}
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name='required'
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <CustomTextField select fullWidth label='Is Required' {...field} error={Boolean(errors.required)}>
+                    <MenuItem value=''>Select</MenuItem>
+                    <MenuItem value='false'>Not Required</MenuItem>
+                    <MenuItem value='true'>Required</MenuItem>
+                  </CustomTextField>
+                )}
+              />
+              {errors.required && <FormHelperText error>This field is required.</FormHelperText>}
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name='inputType'
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <CustomTextField select fullWidth label='Input Type' {...field} error={Boolean(errors.inputType)}>
+                    <MenuItem value=''>Select Input Type</MenuItem>
+                    <MenuItem value='Text + Number'>Text + Number</MenuItem>
+                    <MenuItem value='File'>File</MenuItem>
+                    <MenuItem value='Number'>Number</MenuItem>
+                  </CustomTextField>
+                )}
+              />
+              {errors.inputType && <FormHelperText error>This field is required.</FormHelperText>}
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name='shortQuestion'
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => {
+                  return (
+                    <CustomTextField
+                      {...field}
+                      fullWidth
+                      label='Short Question'
+                      {...(errors.shortQuestion && { error: true, helperText: 'This field is required.' })}
+                    />
+                  )
+                }}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
+                name='showShortQuestion'
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <CustomTextField
+                    select
+                    fullWidth
+                    label='Show Short Question'
+                    {...field}
+                    error={Boolean(errors.showShortQuestion)}
+                  >
+                    <MenuItem value=''>Select Show Short Question</MenuItem>
+                    <MenuItem value='true'>Yes</MenuItem>
+                    <MenuItem value='false'>No</MenuItem>
+                  </CustomTextField>
+                )}
+              />
+              {errors.inputType && <FormHelperText error>This field is required.</FormHelperText>}
+            </Grid>
             <Grid item xs={12} className='flex gap-4'>
               <Button variant='contained' type='submit'>
                 Submit

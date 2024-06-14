@@ -47,6 +47,7 @@ import { getInitials } from '@/utils/getInitials'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
+import PermissionDialog from '@/components/dialogs/PermissionDialog'
 
 declare module '@tanstack/table-core' {
   interface FilterFns {
@@ -57,7 +58,7 @@ declare module '@tanstack/table-core' {
   }
 }
 export type BlogsType = {
-  id?: number
+  id: string
   question: string
   questionType: string
   vendorType: string
@@ -112,6 +113,8 @@ const columnHelper = createColumnHelper<UsersTypeWithAction>()
 
 const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   // States
+  const [open, setOpen] = useState(false)
+  const [editValue, setEditValue] = useState<string>('')
   const [rowSelection, setRowSelection] = useState({})
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState(...[tableData])
@@ -189,9 +192,9 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
       }),
       columnHelper.accessor('action', {
         header: 'Action',
-        cell: () => (
+        cell: ({ row }) => (
           <div className='flex items-center'>
-            <IconButton>
+            <IconButton onClick={() => handleDelete(row.original.id)}>
               <i className='tabler-trash text-[22px] text-textSecondary' />
             </IconButton>
             <IconButton>
@@ -204,7 +207,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
               options={[
                 {
                   text: 'Download',
-                  icon: 'tabler-download text-[22px]',
+                  icon: 'tabler-download text[22px]',
                   menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
                 },
                 {
@@ -260,6 +263,10 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
     } else {
       return <CustomAvatar size={34}>{getInitials(fullName as string)}</CustomAvatar>
     }
+  }
+  const handleDelete: Function = (value: string) => {
+    setOpen(true)
+    setEditValue(value)
   }
 
   return (
@@ -339,6 +346,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
           }}
         />
       </Card>
+      <PermissionDialog open={open} setOpen={setOpen} data={editValue} />
     </>
   )
 }
