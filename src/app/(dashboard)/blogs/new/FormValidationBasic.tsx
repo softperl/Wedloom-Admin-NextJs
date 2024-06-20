@@ -25,8 +25,9 @@ import EditorControlled from './Editor'
 import Tag from './Tag'
 import SEOKeyword from './SEOKeyword'
 import { useEffect, useState } from 'react'
-import { slugify } from '@/lib/utils'
+import { handelError, slugify } from '@/lib/utils'
 import { formatDate } from 'date-fns/format'
+import { newPost } from '@/lib/api'
 
 type FormValues = {
   image: string
@@ -40,7 +41,7 @@ type FormValues = {
   tags: string[]
 }
 
-const FormValidationBasic = () => {
+const FormValidationBasic = ({ categories }: any) => {
   // State to hold the full URL
   const [fullUrl, setFullUrl] = useState<string>('')
   // Hooks
@@ -67,9 +68,22 @@ const FormValidationBasic = () => {
     }
   })
 
-  const onSubmit = (value: any) => {
-    console.log(value)
-    toast.success('Form Submitted')
+  const onSubmit = async (value: any) => {
+    try {
+      await newPost({
+        title: value.title,
+        description: value.shortDescription,
+        content: value.description,
+        categoryId: value.category,
+        keywords: value.seokeywords,
+        status: value.status,
+        tags: value.tags
+      })
+      toast.success('Post added successfully!')
+      router.push('/blogs')
+    } catch (error) {
+      handelError(error)
+    }
   }
 
   // Effect to get the full URL on client-side
@@ -151,8 +165,11 @@ const FormValidationBasic = () => {
                 render={({ field }) => (
                   <CustomTextField select fullWidth label='Category' {...field} error={Boolean(errors.category)}>
                     <MenuItem value=''>Select Category</MenuItem>
-                    <MenuItem value='Food'>Food</MenuItem>
-                    <MenuItem value='Gold'>Gold</MenuItem>
+                    {categories.map((category: any) => (
+                      <MenuItem key={category.id} value={category.id}>
+                        {category.name}
+                      </MenuItem>
+                    ))}
                   </CustomTextField>
                 )}
               />

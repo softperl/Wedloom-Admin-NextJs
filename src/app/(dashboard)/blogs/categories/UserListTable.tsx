@@ -47,6 +47,7 @@ import { getInitials } from '@/utils/getInitials'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
+import { deleteCategory } from '@/lib/api'
 
 declare module '@tanstack/table-core' {
   interface FilterFns {
@@ -57,7 +58,7 @@ declare module '@tanstack/table-core' {
   }
 }
 export type BlogsType = {
-  id?: number
+  id?: string
   name: string
   slug: string
   description?: string
@@ -150,33 +151,45 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
 
       columnHelper.accessor('action', {
         header: 'Action',
-        cell: () => (
-          <div className='flex items-center'>
-            <IconButton>
-              <i className='tabler-trash text-[22px] text-textSecondary' />
-            </IconButton>
-            <IconButton>
-              <Link href={'/'} className='flex'>
-                <i className='tabler-eye text-[22px] text-textSecondary' />
-              </Link>
-            </IconButton>
-            <OptionMenu
-              iconClassName='text-[22px] text-textSecondary'
-              options={[
-                {
-                  text: 'Download',
-                  icon: 'tabler-download text-[22px]',
-                  menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
-                },
-                {
-                  text: 'Edit',
-                  icon: 'tabler-edit text-[22px]',
-                  menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
-                }
-              ]}
-            />
-          </div>
-        ),
+        cell: ({ row }) => {
+          const handelDelete = async () => {
+            const confirm = window.confirm('Are you sure you want to delete this item?')
+            if (!confirm) return
+            try {
+              await deleteCategory(row.original.id!)
+              window.location.reload()
+            } catch (error) {
+              console.error(error)
+            }
+          }
+          return (
+            <div className='flex items-center'>
+              <IconButton onClick={handelDelete}>
+                <i className='tabler-trash text-[22px] text-textSecondary' />
+              </IconButton>
+              <IconButton>
+                <Link href={'/'} className='flex'>
+                  <i className='tabler-eye text-[22px] text-textSecondary' />
+                </Link>
+              </IconButton>
+              <OptionMenu
+                iconClassName='text-[22px] text-textSecondary'
+                options={[
+                  {
+                    text: 'Download',
+                    icon: 'tabler-download text-[22px]',
+                    menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
+                  },
+                  {
+                    text: 'Edit',
+                    icon: 'tabler-edit text-[22px]',
+                    menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
+                  }
+                ]}
+              />
+            </div>
+          )
+        },
         enableSorting: false
       })
     ],

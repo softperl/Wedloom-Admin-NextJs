@@ -5,31 +5,43 @@ import Grid from '@mui/material/Grid'
 
 import type { BlogsType } from './UserListTable'
 import UserListTable from './UserListTable'
+import { fetchFn } from '@/lib/servet-utils'
 
-const data: BlogsType[] = [
-  {
-    title: 'Reference site about Lorem Ipsum, giving information on its origins, as well as a random Lipsum generator.',
-    author: 'shipon',
-    avatar: '',
-    categories: 'food',
-    status: 'published',
-    date: '13 Jun 2024'
-  },
-  {
-    title: 'Lorem Ipsum, giving information on its origins, as well as a random Lipsum generator.',
-    author: 'shipon',
-    avatar: '',
-    categories: 'gold',
-    status: 'draft',
-    date: '13 Jun 2024'
+export default async function page({
+  searchParams
+}: {
+  searchParams?: {
+    q?: string
+    page?: string
+    perPage?: string
   }
-]
+}) {
+  const q = searchParams?.q || ''
+  const currentPage = Number(searchParams?.page) || 1
+  const perPage = Number(searchParams?.perPage) || 50
+  let data = null
+  let totalPages = 1
+  let total = 0
 
-export default function page() {
+  try {
+    data = await fetchFn(`/blog/post/get-all?q=${q}&page=${currentPage}&perPage=${perPage}`, {
+      method: 'GET',
+      next: {
+        revalidate: 0,
+        cache: 'no-store',
+        tags: ['posts']
+      }
+    })
+
+    totalPages = data.totalPages
+    total = data.total
+  } catch (error) {
+    console.log(error)
+  }
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
-        <UserListTable tableData={data} />
+        <UserListTable tableData={data.posts || []} />
       </Grid>
     </Grid>
   )

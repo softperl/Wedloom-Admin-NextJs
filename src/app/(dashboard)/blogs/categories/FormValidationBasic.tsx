@@ -20,14 +20,16 @@ import FormHelperText from '@mui/material/FormHelperText'
 
 import CustomTextField from '@core/components/mui/TextField'
 import { useRouter } from 'next/navigation'
+import { handelError } from '@/lib/utils'
+import { newCategory } from '@/lib/api'
 
 type FormValues = {
   name: string
-  slug: string
+  // slug: string
   parent: string
 }
 
-const FormValidationBasic = () => {
+const FormValidationBasic = ({ categories }: any) => {
   const router = useRouter()
   // Hooks
   const {
@@ -38,12 +40,23 @@ const FormValidationBasic = () => {
   } = useForm<FormValues>({
     defaultValues: {
       name: undefined,
-      slug: undefined,
+      // slug: undefined,
       parent: undefined
     }
   })
 
-  const onSubmit = () => toast.success('Form Submitted')
+  const onSubmit = async (values: any) => {
+    try {
+      await newCategory({
+        name: values.name,
+        parentId: values.parent
+      })
+      toast.success('Category created successfully')
+      window.location.reload()
+    } catch (error) {
+      handelError(error)
+    }
+  }
 
   return (
     <Card>
@@ -67,7 +80,7 @@ const FormValidationBasic = () => {
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={12}>
+            {/* <Grid item xs={12} sm={12}>
               <Controller
                 name='slug'
                 control={control}
@@ -82,7 +95,7 @@ const FormValidationBasic = () => {
                   />
                 )}
               />
-            </Grid>
+            </Grid> */}
 
             <Grid item xs={12} sm={12}>
               <Controller
@@ -92,8 +105,11 @@ const FormValidationBasic = () => {
                 render={({ field }) => (
                   <CustomTextField select fullWidth label='Parent' {...field} error={Boolean(errors.parent)}>
                     <MenuItem value=''>Select Parent Category</MenuItem>
-                    <MenuItem value='Food'>Food</MenuItem>
-                    <MenuItem value='Gold'>Gold</MenuItem>
+                    {categories.map((category: any) => (
+                      <MenuItem key={category.id} value={category.id}>
+                        {category.name}
+                      </MenuItem>
+                    ))}
                   </CustomTextField>
                 )}
               />

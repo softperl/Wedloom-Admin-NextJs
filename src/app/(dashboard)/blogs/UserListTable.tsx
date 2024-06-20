@@ -47,6 +47,7 @@ import { getInitials } from '@/utils/getInitials'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
+import { deletePost } from '@/lib/api'
 
 declare module '@tanstack/table-core' {
   interface FilterFns {
@@ -57,13 +58,15 @@ declare module '@tanstack/table-core' {
   }
 }
 export type BlogsType = {
-  id?: number
+  id?: string
+  slug: string
   title: string
   author: string
   avatar: string
-  categories: string
+  category: any
   status: string
-  date: string
+  createdAt: string
+  user: any
 }
 
 type UsersTypeWithAction = BlogsType & {
@@ -150,7 +153,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
         header: 'Author',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
-            {getAvatar({ avatar: row.original.author, fullName: row.original.author })}
+            {getAvatar({ avatar: row.original.user?.profilePhoto, fullName: row.original.user?.name })}
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium capitalize'>
                 {row.original.author}
@@ -159,13 +162,13 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
           </div>
         )
       }),
-      columnHelper.accessor('categories', {
+      columnHelper.accessor('category', {
         header: 'Categories',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <div className='flex flex-col'>
               <Typography color='text.primary' className='font-medium capitalize'>
-                {row.original.categories}
+                {row.original.category.name}
               </Typography>
             </div>
           </div>
@@ -186,39 +189,51 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
           </div>
         )
       }),
-      columnHelper.accessor('date', {
+      columnHelper.accessor('createdAt', {
         header: 'Date',
-        cell: ({ row }) => <Typography>{row.original.date}</Typography>
+        cell: ({ row }) => <Typography>{row.original.createdAt}</Typography>
       }),
       columnHelper.accessor('action', {
         header: 'Action',
-        cell: () => (
-          <div className='flex items-center'>
-            <IconButton>
-              <i className='tabler-trash text-[22px] text-textSecondary' />
-            </IconButton>
-            <IconButton>
-              <Link href={'/'} className='flex'>
-                <i className='tabler-eye text-[22px] text-textSecondary' />
-              </Link>
-            </IconButton>
-            <OptionMenu
-              iconClassName='text-[22px] text-textSecondary'
-              options={[
-                {
-                  text: 'Download',
-                  icon: 'tabler-download text-[22px]',
-                  menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
-                },
-                {
-                  text: 'Edit',
-                  icon: 'tabler-edit text-[22px]',
-                  menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
-                }
-              ]}
-            />
-          </div>
-        ),
+        cell: ({ row }) => {
+          const handelDelete = async () => {
+            const confirm = window.confirm('Are you sure you want to delete this item?')
+            if (!confirm) return
+            try {
+              await deletePost(row.original.id!)
+              window.location.reload()
+            } catch (error) {
+              console.error(error)
+            }
+          }
+          return (
+            <div className='flex items-center'>
+              <IconButton onClick={handelDelete}>
+                <i className='tabler-trash text-[22px] text-textSecondary' />
+              </IconButton>
+              <IconButton>
+                <Link href={'/'} className='flex'>
+                  <i className='tabler-eye text-[22px] text-textSecondary' />
+                </Link>
+              </IconButton>
+              <OptionMenu
+                iconClassName='text-[22px] text-textSecondary'
+                options={[
+                  {
+                    text: 'Download',
+                    icon: 'tabler-download text-[22px]',
+                    menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
+                  },
+                  {
+                    text: 'Edit',
+                    icon: 'tabler-edit text-[22px]',
+                    menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
+                  }
+                ]}
+              />
+            </div>
+          )
+        },
         enableSorting: false
       })
     ],
@@ -261,7 +276,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
     if (avatar) {
       return <CustomAvatar src={avatar} size={34} />
     } else {
-      return <CustomAvatar size={34}>{getInitials(fullName as string)}</CustomAvatar>
+      return <CustomAvatar size={34}>{getInitials(fullName)}</CustomAvatar>
     }
   }
 

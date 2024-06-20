@@ -39,3 +39,9 @@ export const getRoleFe = () => API.get('/auth/get-role')
 export const renewAccessToken = (formData: { refreshToken: string }) => API.post('/auth/renew', formData)
 export const signIn = (formData: any) => API.post('/auth/login-admin', formData)
 export const getAllUsers = () => API.get('/admin/auth/get-all-users')
+
+//Blog
+export const newPost = (formData: any) => API.post('/blog/post/new', formData)
+export const newCategory = (formData: any) => API.post('/blog/category/new', formData)
+export const deleteCategory = (id: string) => API.delete(`/blog/category/delete/${id}`)
+export const deletePost = (id: string) => API.delete(`/blog/post/delete/${id}`)
