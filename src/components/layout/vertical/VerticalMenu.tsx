@@ -56,13 +56,13 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
     <ScrollWrapper
       {...(isBreakpointReached
         ? {
-            className: 'bs-full overflow-y-auto overflow-x-hidden',
-            onScroll: container => scrollMenu(container, false)
-          }
+          className: 'bs-full overflow-y-auto overflow-x-hidden',
+          onScroll: container => scrollMenu(container, false)
+        }
         : {
-            options: { wheelPropagation: false, suppressScrollX: true },
-            onScrollY: container => scrollMenu(container, true)
-          })}
+          options: { wheelPropagation: false, suppressScrollX: true },
+          onScrollY: container => scrollMenu(container, true)
+        })}
     >
       {/* Incase you also want to scroll NavHeader to scroll with Vertical Menu, remove NavHeader from above and paste it below this comment */}
       {/* Vertical Menu */}
@@ -90,11 +90,18 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           <MenuItem href={`/users`}>Users</MenuItem>
           <MenuItem href={`/vendors`}>Vendors</MenuItem>
         </SubMenu>
+        <SubMenu label={'Membership'} icon={<i className='tabler-users-group' />}>
+          <MenuItem href={`/membership`}>All Membership</MenuItem>
+          <MenuItem href={`/membership/plan`}>Plan</MenuItem>
+
+        </SubMenu>
+
         <SubMenu label={'Settings'} icon={<i className='tabler-settings' />}>
           <MenuItem href={`/vendorcategory`}>Vendor Category</MenuItem>
           <MenuItem href={`/city`}>City</MenuItem>
           <MenuItem href={`/checklist`}>User Checklist</MenuItem>
           <MenuItem href={`/about`}>About</MenuItem>
+
         </SubMenu>
         <SubMenu label={'Terms & Condition'} icon={<i className='tabler-info-circle' />}>
           <MenuItem href={`/terms`}>Terms</MenuItem>

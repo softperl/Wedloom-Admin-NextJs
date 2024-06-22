@@ -13,16 +13,14 @@ const data: QuestionType[] = [
     question:
       'Reference site about Lorem Ipsum, giving information on its origins, as well as a random Lipsum generator. Reference site about Lorem Ipsum, giving information on its origins, as well as a random Lipsum generator. Reference site about Lorem Ipsum, giving information on its origins, as well as a random Lipsum generator.',
     type: 'Long',
-    vendor: 'Photographer',
-    required: true,
+    category: 'Photographer',
     date: '13 Jun 2024'
   },
   {
     id: '2',
     question: 'Lorem Ipsum, giving information on its origins, as well as a random Lipsum generator.',
     type: 'Short',
-    vendor: 'Beauty',
-    required: false,
+    category: 'Beauty',
     date: '13 Jun 2024'
   }
 ]

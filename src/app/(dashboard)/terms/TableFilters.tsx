@@ -1,5 +1,5 @@
 // React Imports
-import { useState, useEffect, SyntheticEvent, forwardRef } from 'react'
+import { useState, useEffect, forwardRef, SyntheticEvent } from 'react'
 
 // MUI Imports
 import CardContent from '@mui/material/CardContent'
@@ -22,6 +22,35 @@ type CustomInputProps = TextFieldProps & {
 }
 
 const CustomInput = forwardRef((props: CustomInputProps, ref) => {
+  const DebouncedInput = ({
+    value: initialValue,
+    onChange,
+    debounce = 500,
+    ...props
+  }: {
+    value: string | number
+    onChange: (value: string | number) => void
+    debounce?: number
+  } & Omit<TextFieldProps, 'onChange'>) => {
+    // States
+    const [value, setValue] = useState(initialValue)
+
+    useEffect(() => {
+      setValue(initialValue)
+    }, [initialValue])
+
+    useEffect(() => {
+      const timeout = setTimeout(() => {
+        onChange(value)
+      }, debounce)
+
+      return () => clearTimeout(timeout)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value])
+
+    return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
+  }
+
   // Vars
   const startDate = props.start !== null ? formatDate(props.start, 'MM/dd/yyyy') : ''
   const endDate = props.end !== null ? ` - ${formatDate(props.end, 'MM/dd/yyyy')}` : null
@@ -62,19 +91,6 @@ const TableFilters = ({ setData, tableData }: { setData: any; tableData?: UsersT
     <CardContent>
       <Grid container spacing={6}>
         <Grid item xs={12} sm={4}>
-          <AppReactDatepicker
-            selectsRange
-            endDate={endDate}
-            selected={startDate}
-            startDate={startDate}
-            id='date-range-picker'
-            placeholderText='Join Date'
-            onChange={handleDateChange}
-            shouldCloseOnSelect={false}
-            customInput={<CustomInput start={startDate as Date | number} end={endDate as Date | number} />}
-          />
-        </Grid>
-        <Grid item xs={12} sm={4}>
           <CustomTextField
             select
             fullWidth
@@ -84,22 +100,22 @@ const TableFilters = ({ setData, tableData }: { setData: any; tableData?: UsersT
             SelectProps={{ displayEmpty: true }}
           >
             <MenuItem value=''>Status</MenuItem>
-            <MenuItem value='Active'>Active</MenuItem>
-            <MenuItem value='Block'>Block</MenuItem>
+            <MenuItem value='Published'>Published</MenuItem>
+            <MenuItem value='Draft'>Draft</MenuItem>
           </CustomTextField>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <CustomTextField
-            select
-            fullWidth
-            id='select-status'
-            value={status}
-            onChange={e => setStatus(e.target.value)}
-            SelectProps={{ displayEmpty: true }}
-          >
-            <MenuItem value=''>Event Type</MenuItem>
-            <MenuItem value='Wedding'>Wedding</MenuItem>
-          </CustomTextField>
+          <AppReactDatepicker
+            selectsRange
+            endDate={endDate}
+            selected={startDate}
+            startDate={startDate}
+            id='date-range-picker'
+            placeholderText='Date'
+            onChange={handleDateChange}
+            shouldCloseOnSelect={false}
+            customInput={<CustomInput start={startDate as Date | number} end={endDate as Date | number} />}
+          />
         </Grid>
       </Grid>
     </CardContent>

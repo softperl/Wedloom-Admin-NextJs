@@ -60,7 +60,7 @@ const FormValidationBasic = ({ categories }: any) => {
 
   return (
     <Card>
-      <CardHeader title='Categories' />
+      <CardHeader title='Add New Category' />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={6}>

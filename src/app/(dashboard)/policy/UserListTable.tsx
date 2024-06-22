@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 // Next Imports
 import Link from 'next/link'
@@ -13,6 +13,8 @@ import IconButton from '@mui/material/IconButton'
 import TablePagination from '@mui/material/TablePagination'
 import Typography from '@mui/material/Typography'
 import { styled } from '@mui/material/styles'
+import type { TextFieldProps } from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
 
 // Third-party Imports
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
@@ -47,6 +49,9 @@ import { getInitials } from '@/utils/getInitials'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
+import CustomTextField from '@/@core/components/mui/TextField'
+import CardHeader from '@mui/material/CardHeader'
+import TableFilters from './TableFilters'
 
 declare module '@tanstack/table-core' {
   interface FilterFns {
@@ -90,6 +95,35 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 
   // Return if the item should be filtered in/out
   return itemRank.passed
+}
+
+const DebouncedInput = ({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: {
+  value: string | number
+  onChange: (value: string | number) => void
+  debounce?: number
+} & Omit<TextFieldProps, 'onChange'>) => {
+  // States
+  const [value, setValue] = useState(initialValue)
+
+  useEffect(() => {
+    setValue(initialValue)
+  }, [initialValue])
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onChange(value)
+    }, debounce)
+
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
+  return <CustomTextField {...props} value={value} onChange={e => setValue(e.target.value)} />
 }
 
 // Vars
@@ -244,11 +278,41 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   return (
     <>
       <Card>
-        <div className='p-5'>
-          <div className='flex justify-end items-center'>
+        <CardHeader title='Policy' />
+        <TableFilters
+          setData={setData}
+          //@ts-ignore
+          tableData={tableData}
+        />
+        <div className='flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4'>
+          <CustomTextField
+            select
+            value={table.getState().pagination.pageSize}
+            onChange={e => table.setPageSize(Number(e.target.value))}
+            className='is-[70px]'
+          >
+            <MenuItem value='10'>10</MenuItem>
+            <MenuItem value='25'>25</MenuItem>
+            <MenuItem value='50'>50</MenuItem>
+          </CustomTextField>
+          <div className='flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4'>
+            <DebouncedInput
+              value={globalFilter ?? ''}
+              onChange={value => setGlobalFilter(String(value))}
+              placeholder='Search User'
+              className='is-full sm:is-auto'
+            />
+            <Button
+              color='secondary'
+              variant='tonal'
+              startIcon={<i className='tabler-upload' />}
+              className='is-full sm:is-auto'
+            >
+              Export
+            </Button>
             <Link href={'/policy/new'}>
               <Button variant='contained' startIcon={<i className='tabler-plus' />} className='is-full sm:is-auto'>
-                Add New
+                Add New Policy
               </Button>
             </Link>
           </div>

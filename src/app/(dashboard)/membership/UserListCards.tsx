@@ -10,7 +10,7 @@ import HorizontalWithSubtitle from '@components/card-statistics/HorizontalWithSu
 // Vars
 const data: UserDataType[] = [
   {
-    title: 'Total Vendors',
+    title: 'Total Brands',
     value: '21,459',
     avatarIcon: 'tabler-users',
     avatarColor: 'primary',
@@ -19,7 +19,7 @@ const data: UserDataType[] = [
     subTitle: 'Total User'
   },
   {
-    title: 'Active Vendors',
+    title: 'Active Membership',
     value: '4,567',
     avatarIcon: 'tabler-user-plus',
     avatarColor: 'error',
@@ -28,7 +28,7 @@ const data: UserDataType[] = [
     subTitle: 'Last week analytics'
   },
   {
-    title: 'Block Vendors',
+    title: 'Monthly Membership',
     value: '19,860',
     avatarIcon: 'tabler-user-check',
     avatarColor: 'success',
@@ -37,7 +37,7 @@ const data: UserDataType[] = [
     subTitle: 'Last week analytics'
   },
   {
-    title: 'Monthly Vendors',
+    title: 'Yearly Membership',
     value: '237',
     avatarIcon: 'tabler-user-search',
     avatarColor: 'warning',

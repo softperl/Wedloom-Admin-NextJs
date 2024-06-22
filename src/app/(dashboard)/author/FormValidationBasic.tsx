@@ -48,7 +48,7 @@ const FormValidationBasic = () => {
 
   return (
     <Card>
-      <CardHeader title='Categories' />
+      <CardHeader title='Add New Author' />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={6}>
