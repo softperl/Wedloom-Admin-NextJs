@@ -359,14 +359,6 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
               className="is-full sm:is-auto">
               Export
             </Button>
-            <Link href={"/membership/plan"}>
-              <Button
-                variant="contained"
-                startIcon={<i className="tabler-plus" />}
-                className="is-full sm:is-auto">
-                Add New Plan
-              </Button>
-            </Link>
           </div>
         </div>
         <div className="overflow-x-auto">

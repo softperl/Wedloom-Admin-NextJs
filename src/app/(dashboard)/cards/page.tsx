@@ -10,18 +10,7 @@ export default function page() {
         <UserListCards />
       </Grid>
       <Grid item xs={12}>
-        <UserListTable
-          tableData={[
-            {
-              id: "66",
-              package: "Standard",
-              packageType: "Yearly",
-              amount: "8249",
-              createdAt: "12 Jun 2024",
-              status: "Active",
-            },
-          ]}
-        />
+        <UserListTable tableData={[]} />
       </Grid>
     </Grid>
   );

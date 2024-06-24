@@ -179,7 +179,11 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
         cell: ({ row }) => (
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
-              <Typography color="text.primary">{row.original.name}</Typography>
+              <Typography
+                color="text.primary"
+                className="font-medium capitalize">
+                {row.original.name}
+              </Typography>
             </div>
           </div>
         ),
@@ -190,9 +194,10 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
         cell: ({ row }) => {
           const parentName = data?.filter(
             (item) => item?.id === row.original.parentId
-          )![0]?.name;
+          );
 
-          return <Typography>{parentName}</Typography>;
+          console.log({ data, parentName });
+          return <Typography>{row.original.parentId}</Typography>;
         },
       }),
       columnHelper.accessor("slug", {
