@@ -10,7 +10,7 @@ import HorizontalWithSubtitle from '@components/card-statistics/HorizontalWithSu
 // Vars
 const data: UserDataType[] = [
   {
-    title: 'Session',
+    title: 'Total Questions',
     value: '21,459',
     avatarIcon: 'tabler-users',
     avatarColor: 'primary',
@@ -19,7 +19,7 @@ const data: UserDataType[] = [
     subTitle: 'Total User'
   },
   {
-    title: 'Paid Users',
+    title: 'Total Vendor',
     value: '4,567',
     avatarIcon: 'tabler-user-plus',
     avatarColor: 'error',
@@ -28,21 +28,12 @@ const data: UserDataType[] = [
     subTitle: 'Last week analytics'
   },
   {
-    title: 'Active Users',
+    title: 'Categories',
     value: '19,860',
     avatarIcon: 'tabler-user-check',
     avatarColor: 'success',
     change: 'negative',
     changeNumber: '14%',
-    subTitle: 'Last week analytics'
-  },
-  {
-    title: 'Pending Users',
-    value: '237',
-    avatarIcon: 'tabler-user-search',
-    avatarColor: 'warning',
-    change: 'positive',
-    changeNumber: '42%',
     subTitle: 'Last week analytics'
   }
 ]
@@ -51,7 +42,7 @@ const UserListCards = () => {
   return (
     <Grid container spacing={6}>
       {data.map((item, i) => (
-        <Grid key={i} item xs={12} sm={6} md={3}>
+        <Grid key={i} item xs={12} sm={4}>
           <HorizontalWithSubtitle {...item} />
         </Grid>
       ))}

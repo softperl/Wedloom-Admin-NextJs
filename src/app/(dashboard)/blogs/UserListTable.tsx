@@ -1,23 +1,25 @@
-'use client'
+"use client";
 
 // React Imports
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from "react";
 
 // Next Imports
-import Link from 'next/link'
+import Link from "next/link";
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import Chip from '@mui/material/Chip'
-import IconButton from '@mui/material/IconButton'
-import TablePagination from '@mui/material/TablePagination'
-import Typography from '@mui/material/Typography'
-import { styled } from '@mui/material/styles'
+import Card from "@mui/material/Card";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import TablePagination from "@mui/material/TablePagination";
+import Typography from "@mui/material/Typography";
+import MenuItem from "@mui/material/MenuItem";
+import { styled } from "@mui/material/styles";
+import type { TextFieldProps } from "@mui/material/TextField";
 
 // Third-party Imports
-import type { RankingInfo } from '@tanstack/match-sorter-utils'
-import { rankItem } from '@tanstack/match-sorter-utils'
-import type { ColumnDef, FilterFn } from '@tanstack/react-table'
+import type { RankingInfo } from "@tanstack/match-sorter-utils";
+import { rankItem } from "@tanstack/match-sorter-utils";
+import type { ColumnDef, FilterFn } from "@tanstack/react-table";
 import {
   createColumnHelper,
   flexRender,
@@ -28,233 +30,294 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable
-} from '@tanstack/react-table'
-import classnames from 'classnames'
+  useReactTable,
+} from "@tanstack/react-table";
+import classnames from "classnames";
 
-import Button from '@mui/material/Button'
+import Button from "@mui/material/Button";
 
-import type { UsersType } from '@/types/apps/userTypes'
-import type { ThemeColor } from '@core/types'
+import type { UsersType } from "@/types/apps/userTypes";
+import type { ThemeColor } from "@core/types";
 
 // Component Imports
-import TablePaginationComponent from '@components/TablePaginationComponent'
-import CustomAvatar from '@core/components/mui/Avatar'
-import OptionMenu from '@core/components/option-menu'
+import TablePaginationComponent from "@components/TablePaginationComponent";
+import CustomAvatar from "@core/components/mui/Avatar";
+import OptionMenu from "@core/components/option-menu";
 
 // Util Imports
-import { getInitials } from '@/utils/getInitials'
+import { getInitials } from "@/utils/getInitials";
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
-import { deletePost } from '@/lib/api'
+import tableStyles from "@core/styles/table.module.css";
+import { deletePost } from "@/lib/api";
+import CustomTextField from "@/@core/components/mui/TextField";
+import CardHeader from "@mui/material/CardHeader";
+import TableFilters from "./TableFilters";
+import { formatDate } from "date-fns/format";
+import PermissionDialog from "@/components/dialogs/PermissionDialog";
 
-declare module '@tanstack/table-core' {
+declare module "@tanstack/table-core" {
   interface FilterFns {
-    fuzzy: FilterFn<unknown>
+    fuzzy: FilterFn<unknown>;
   }
   interface FilterMeta {
-    itemRank: RankingInfo
+    itemRank: RankingInfo;
   }
 }
 export type BlogsType = {
-  id?: string
-  slug: string
-  title: string
-  author: string
-  avatar: string
-  category: any
-  status: string
-  createdAt: string
-  user: any
-}
+  id?: string;
+  slug: string;
+  title: string;
+  author: string;
+  avatar: string;
+  category: any;
+  status: string;
+  createdAt: string;
+  user: any;
+};
 
 type UsersTypeWithAction = BlogsType & {
-  action?: string
-}
+  action?: string;
+};
 
 type UserRoleType = {
-  [key: string]: { icon: string; color: string }
-}
+  [key: string]: { icon: string; color: string };
+};
 
 type UserStatusType = {
-  [key: string]: ThemeColor
-}
+  [key: string]: ThemeColor;
+};
 
 // Styled Components
-const Icon = styled('i')({})
+const Icon = styled("i")({});
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value)
+  const itemRank = rankItem(row.getValue(columnId), value);
 
   // Store the itemRank info
   addMeta({
-    itemRank
-  })
+    itemRank,
+  });
 
   // Return if the item should be filtered in/out
-  return itemRank.passed
-}
+  return itemRank.passed;
+};
+
+const DebouncedInput = ({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: {
+  value: string | number;
+  onChange: (value: string | number) => void;
+  debounce?: number;
+} & Omit<TextFieldProps, "onChange">) => {
+  // States
+  const [value, setValue] = useState(initialValue);
+
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onChange(value);
+    }, debounce);
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <CustomTextField
+      {...props}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+    />
+  );
+};
 
 // Vars
 const userRoleObj: UserRoleType = {
-  admin: { icon: 'tabler-crown', color: 'error' },
-  author: { icon: 'tabler-device-desktop', color: 'warning' },
-  editor: { icon: 'tabler-edit', color: 'info' },
-  maintainer: { icon: 'tabler-chart-pie', color: 'success' },
-  subscriber: { icon: 'tabler-user', color: 'primary' }
-}
+  admin: { icon: "tabler-crown", color: "error" },
+  author: { icon: "tabler-device-desktop", color: "warning" },
+  editor: { icon: "tabler-edit", color: "info" },
+  maintainer: { icon: "tabler-chart-pie", color: "success" },
+  subscriber: { icon: "tabler-user", color: "primary" },
+};
 
 const userStatusObj: UserStatusType = {
-  published: 'success',
-  draft: 'secondary'
-}
+  Published: "success",
+  Draft: "secondary",
+};
 
 // Column Definitions
-const columnHelper = createColumnHelper<UsersTypeWithAction>()
+const columnHelper = createColumnHelper<UsersTypeWithAction>();
 
 const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   // States
-  const [rowSelection, setRowSelection] = useState({})
+  const [rowSelection, setRowSelection] = useState({});
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [data, setData] = useState(...[tableData])
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [data, setData] = useState(...[tableData]);
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const columns = useMemo<ColumnDef<UsersTypeWithAction, any>[]>(
     () => [
-      columnHelper.accessor('id', {
-        header: 'ID',
+      columnHelper.accessor("id", {
+        header: "ID",
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium capitalize'>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <Typography
+                color="text.primary"
+                className="font-medium capitalize">
                 {row.index + 1}
               </Typography>
             </div>
           </div>
-        )
+        ),
       }),
-      columnHelper.accessor('title', {
-        header: 'Title',
+      columnHelper.accessor("title", {
+        header: "Title",
         cell: ({ row }) => (
-          <div className='flex items-center gap-4 w-72 line-clamp-1'>
-            <div className='flex flex-col'>
+          <div className="flex items-center gap-4 w-72 line-clamp-1">
+            <div className="flex flex-col">
               <Link href={`/blogs/${row.original.author}/${row.index + 1}`}>
-                <Typography color='text.primary' className='font-medium'>
+                <Typography color="text.primary" className="font-medium">
                   {row.original.title}
                 </Typography>
               </Link>
             </div>
           </div>
-        )
+        ),
       }),
-      columnHelper.accessor('author', {
-        header: 'Author',
+      columnHelper.accessor("author", {
+        header: "Author",
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            {getAvatar({ avatar: row.original.user?.profilePhoto, fullName: row.original.user?.name })}
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium capitalize'>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <Typography
+                color="text.primary"
+                className="font-medium capitalize">
                 {row.original.author}
               </Typography>
             </div>
           </div>
-        )
+        ),
       }),
-      columnHelper.accessor('category', {
-        header: 'Categories',
+      columnHelper.accessor("category", {
+        header: "Categories",
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            <div className='flex flex-col'>
-              <Typography color='text.primary' className='font-medium capitalize'>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <Typography
+                color="text.primary"
+                className="font-medium capitalize">
                 {row.original.category.name}
               </Typography>
             </div>
           </div>
-        )
+        ),
       }),
 
-      columnHelper.accessor('status', {
-        header: 'Status',
+      columnHelper.accessor("status", {
+        header: "Status",
         cell: ({ row }) => (
-          <div className='flex items-center gap-3'>
+          <div className="flex items-center gap-3">
             <Chip
-              variant='tonal'
-              className='capitalize'
+              variant="tonal"
+              className="capitalize"
               label={row.original.status}
               color={userStatusObj[row.original.status]}
-              size='small'
+              size="small"
             />
           </div>
-        )
+        ),
       }),
-      columnHelper.accessor('createdAt', {
-        header: 'Date',
-        cell: ({ row }) => <Typography>{row.original.createdAt}</Typography>
+      columnHelper.accessor("createdAt", {
+        header: "Date",
+        cell: ({ row }) => (
+          <Typography>
+            {formatDate(row.original.createdAt, "ii MMM Y")}
+          </Typography>
+        ),
       }),
-      columnHelper.accessor('action', {
-        header: 'Action',
+      columnHelper.accessor("action", {
+        header: "Action",
         cell: ({ row }) => {
+          const [open, setOpen] = useState(false);
+          const [editValue, setEditValue] = useState<string>("");
           const handelDelete = async () => {
-            const confirm = window.confirm('Are you sure you want to delete this item?')
-            if (!confirm) return
             try {
-              await deletePost(row.original.id!)
-              window.location.reload()
+              setOpen(false);
+              await deletePost(row.original.id!);
+              window.location.reload();
             } catch (error) {
-              console.error(error)
+              console.error(error);
             }
-          }
+          };
           return (
-            <div className='flex items-center'>
-              <IconButton onClick={handelDelete}>
-                <i className='tabler-trash text-[22px] text-textSecondary' />
-              </IconButton>
-              <IconButton>
-                <Link href={'/'} className='flex'>
-                  <i className='tabler-eye text-[22px] text-textSecondary' />
-                </Link>
-              </IconButton>
-              <OptionMenu
-                iconClassName='text-[22px] text-textSecondary'
-                options={[
-                  {
-                    text: 'Download',
-                    icon: 'tabler-download text-[22px]',
-                    menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
-                  },
-                  {
-                    text: 'Edit',
-                    icon: 'tabler-edit text-[22px]',
-                    menuItemProps: { className: 'flex items-center gap-2 text-textSecondary' }
-                  }
-                ]}
+            <>
+              <div className="flex items-center">
+                <IconButton>
+                  <Link href={"/"} className="flex">
+                    <i className="tabler-eye text-[22px] text-textSecondary" />
+                  </Link>
+                </IconButton>
+                <OptionMenu
+                  iconClassName="text-[22px] text-textSecondary"
+                  options={[
+                    {
+                      text: "Edit",
+                      icon: "tabler-edit text-[22px]",
+                      menuItemProps: {
+                        className: "flex items-center gap-2 text-textSecondary",
+                        onClick: () => {},
+                      },
+                    },
+                    {
+                      text: "Delete",
+                      icon: "tabler-trash text-[22px]",
+                      menuItemProps: {
+                        className: "flex items-center gap-2 text-textSecondary",
+                        onClick: () => setOpen(true),
+                      },
+                    },
+                  ]}
+                />
+              </div>
+              <PermissionDialog
+                open={open}
+                setOpen={setOpen}
+                data={editValue}
+                action={handelDelete}
               />
-            </div>
-          )
+            </>
+          );
         },
-        enableSorting: false
-      })
+        enableSorting: false,
+      }),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   const table = useReactTable({
     data: data as BlogsType[],
     columns,
     filterFns: {
-      fuzzy: fuzzyFilter
+      fuzzy: fuzzyFilter,
     },
     state: {
       rowSelection,
-      globalFilter
+      globalFilter,
     },
     initialState: {
       pagination: {
-        pageSize: 10
-      }
+        pageSize: 10,
+      },
     },
     enableRowSelection: true, //enable row selection for all rows
     // enableRowSelection: row => row.original.age > 18, // or enable row selection conditionally per row
@@ -267,52 +330,89 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
     getPaginationRowModel: getPaginationRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues()
-  })
+    getFacetedMinMaxValues: getFacetedMinMaxValues(),
+  });
 
-  const getAvatar = (params: Pick<UsersType, 'avatar' | 'fullName'>) => {
-    const { avatar, fullName } = params
+  const getAvatar = (params: Pick<UsersType, "avatar" | "fullName">) => {
+    const { avatar, fullName } = params;
 
     if (avatar) {
-      return <CustomAvatar src={avatar} size={34} />
+      return <CustomAvatar src={avatar} size={34} />;
     } else {
-      return <CustomAvatar size={34}>{getInitials(fullName)}</CustomAvatar>
+      return <CustomAvatar size={34}>{getInitials(fullName)}</CustomAvatar>;
     }
-  }
+  };
 
   return (
     <>
       <Card>
-        <div className='p-5'>
-          <div className='flex justify-end items-center'>
-            <Link href={'/blogs/new'}>
-              <Button variant='contained' startIcon={<i className='tabler-plus' />} className='is-full sm:is-auto'>
+        <CardHeader title="Blogs" className="pbe-4" />
+        <TableFilters
+          setData={setData}
+          //@ts-ignore
+          tableData={tableData}
+        />
+        <div className="flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4">
+          <CustomTextField
+            select
+            value={table.getState().pagination.pageSize}
+            onChange={(e) => table.setPageSize(Number(e.target.value))}
+            className="is-[70px]">
+            <MenuItem value="10">10</MenuItem>
+            <MenuItem value="25">25</MenuItem>
+            <MenuItem value="50">50</MenuItem>
+          </CustomTextField>
+          <div className="flex flex-col sm:flex-row is-full sm:is-auto items-start sm:items-center gap-4">
+            <DebouncedInput
+              value={globalFilter ?? ""}
+              onChange={(value) => setGlobalFilter(String(value))}
+              placeholder="Search User"
+              className="is-full sm:is-auto"
+            />
+            <Button
+              color="secondary"
+              variant="tonal"
+              startIcon={<i className="tabler-upload" />}
+              className="is-full sm:is-auto">
+              Export
+            </Button>
+            <Link href={"/blogs/new"}>
+              <Button
+                variant="contained"
+                startIcon={<i className="tabler-plus" />}
+                className="is-full sm:is-auto">
                 Add New Blog
               </Button>
             </Link>
           </div>
         </div>
-        <div className='overflow-x-auto'>
+        <div className="overflow-x-auto">
           <table className={tableStyles.table}>
             <thead>
-              {table.getHeaderGroups().map(headerGroup => (
+              {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
+                  {headerGroup.headers.map((header) => (
                     <th key={header.id}>
                       {header.isPlaceholder ? null : (
                         <>
                           <div
                             className={classnames({
-                              'flex items-center': header.column.getIsSorted(),
-                              'cursor-pointer select-none': header.column.getCanSort()
+                              "flex items-center": header.column.getIsSorted(),
+                              "cursor-pointer select-none":
+                                header.column.getCanSort(),
                             })}
-                            onClick={header.column.getToggleSortingHandler()}
-                          >
-                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            onClick={header.column.getToggleSortingHandler()}>
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                             {{
-                              asc: <i className='tabler-chevron-up text-xl' />,
-                              desc: <i className='tabler-chevron-down text-xl' />
-                            }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
+                              asc: <i className="tabler-chevron-up text-xl" />,
+                              desc: (
+                                <i className="tabler-chevron-down text-xl" />
+                              ),
+                            }[header.column.getIsSorted() as "asc" | "desc"] ??
+                              null}
                           </div>
                         </>
                       )}
@@ -324,7 +424,9 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
             {table.getFilteredRowModel().rows.length === 0 ? (
               <tbody>
                 <tr>
-                  <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+                  <td
+                    colSpan={table.getVisibleFlatColumns().length}
+                    className="text-center">
                     No data available
                   </td>
                 </tr>
@@ -334,14 +436,23 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
                 {table
                   .getRowModel()
                   .rows.slice(0, table.getState().pagination.pageSize)
-                  .map(row => {
+                  .map((row) => {
                     return (
-                      <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-                        {row.getVisibleCells().map(cell => (
-                          <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                      <tr
+                        key={row.id}
+                        className={classnames({
+                          selected: row.getIsSelected(),
+                        })}>
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
                         ))}
                       </tr>
-                    )
+                    );
                   })}
               </tbody>
             )}
@@ -353,12 +464,12 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
           rowsPerPage={table.getState().pagination.pageSize}
           page={table.getState().pagination.pageIndex}
           onPageChange={(_, page) => {
-            table.setPageIndex(page)
+            table.setPageIndex(page);
           }}
         />
       </Card>
     </>
-  )
-}
+  );
+};
 
-export default UserListTable
+export default UserListTable;

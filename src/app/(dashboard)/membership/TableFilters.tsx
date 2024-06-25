@@ -1,5 +1,5 @@
 // React Imports
-import { useState, useEffect, SyntheticEvent, forwardRef } from 'react'
+import { useState, useEffect, forwardRef, SyntheticEvent } from 'react'
 
 // MUI Imports
 import CardContent from '@mui/material/CardContent'
@@ -68,7 +68,7 @@ const TableFilters = ({ setData, tableData }: { setData: any; tableData?: UsersT
             selected={startDate}
             startDate={startDate}
             id='date-range-picker'
-            placeholderText='Join Date'
+            placeholderText='Date'
             onChange={handleDateChange}
             shouldCloseOnSelect={false}
             customInput={<CustomInput start={startDate as Date | number} end={endDate as Date | number} />}
@@ -83,9 +83,8 @@ const TableFilters = ({ setData, tableData }: { setData: any; tableData?: UsersT
             onChange={e => setPlan(e.target.value)}
             SelectProps={{ displayEmpty: true }}
           >
-            <MenuItem value=''>Status</MenuItem>
-            <MenuItem value='Active'>Active</MenuItem>
-            <MenuItem value='Block'>Block</MenuItem>
+            <MenuItem value=''>Categories</MenuItem>
+            <MenuItem value='basic'>Basic</MenuItem>
           </CustomTextField>
         </Grid>
         <Grid item xs={12} sm={4}>
@@ -97,8 +96,9 @@ const TableFilters = ({ setData, tableData }: { setData: any; tableData?: UsersT
             onChange={e => setStatus(e.target.value)}
             SelectProps={{ displayEmpty: true }}
           >
-            <MenuItem value=''>Event Type</MenuItem>
-            <MenuItem value='Wedding'>Wedding</MenuItem>
+            <MenuItem value=''>Status</MenuItem>
+            <MenuItem value='Active'>Active</MenuItem>
+            <MenuItem value='Block'>Block</MenuItem>
           </CustomTextField>
         </Grid>
       </Grid>

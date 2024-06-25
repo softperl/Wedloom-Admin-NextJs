@@ -4,13 +4,16 @@
 import { useEffect, useMemo, useState } from "react";
 
 // Next Imports
-import Link from "next/link";
+import { useParams } from "next/navigation";
 
 // MUI Imports
+import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
-import Chip from "@mui/material/Chip";
+import CardHeader from "@mui/material/CardHeader";
 import IconButton from "@mui/material/IconButton";
+import MenuItem from "@mui/material/MenuItem";
 import TablePagination from "@mui/material/TablePagination";
+import type { TextFieldProps } from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 
@@ -32,28 +35,22 @@ import {
 } from "@tanstack/react-table";
 import classnames from "classnames";
 
-import Button from "@mui/material/Button";
-
-import type { UsersType } from "@/types/apps/userTypes";
+// Type Imports
 import type { ThemeColor } from "@core/types";
 
 // Component Imports
 import TablePaginationComponent from "@components/TablePaginationComponent";
-import CustomAvatar from "@core/components/mui/Avatar";
+import CustomTextField from "@core/components/mui/TextField";
 import OptionMenu from "@core/components/option-menu";
-
-// Util Imports
-import { getInitials } from "@/utils/getInitials";
+import TableFilters from "./TableFilters";
 
 // Style Imports
 import tableStyles from "@core/styles/table.module.css";
-import { CardHeader } from "@mui/material";
-import TableFilters from "./TableFilters";
-import CustomTextField from "@/@core/components/mui/TextField";
-import { TextFieldProps } from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
-import { deleteCategory } from "@/lib/api";
+import { formatDate } from "date-fns/format";
 import PermissionDialog from "@/components/dialogs/PermissionDialog";
+import Link from "next/link";
+import Chip from "@mui/material/Chip";
+import { cn } from "@/lib/utils";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -63,14 +60,20 @@ declare module "@tanstack/table-core" {
     itemRank: RankingInfo;
   }
 }
-export type BlogsType = {
-  id?: string;
-  name: string;
-  slug: string;
-  parentId: string | null;
+
+export type UsersType = {
+  id: number;
+  brand: string;
+  email: string;
+  category: string;
+  package: string;
+  amount: number;
+  purchaseDate: string;
+  expiredDate: string;
+  status: string;
 };
 
-type UsersTypeWithAction = BlogsType & {
+type UsersTypeWithAction = UsersType & {
   action?: string;
 };
 
@@ -143,19 +146,24 @@ const userRoleObj: UserRoleType = {
 };
 
 const userStatusObj: UserStatusType = {
-  published: "success",
-  draft: "secondary",
+  Active: "success",
+  Block: "warning",
 };
 
 // Column Definitions
 const columnHelper = createColumnHelper<UsersTypeWithAction>();
 
-const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
+const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
   // States
+
+  const [addUserOpen, setAddUserOpen] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState(...[tableData]);
   const [globalFilter, setGlobalFilter] = useState("");
+
+  // Hooks
+  const { lang: locale } = useParams();
 
   const columns = useMemo<ColumnDef<UsersTypeWithAction, any>[]>(
     () => [
@@ -173,59 +181,110 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
           </div>
         ),
       }),
-
-      columnHelper.accessor("name", {
-        header: "Name",
+      columnHelper.accessor("brand", {
+        header: "Brand Name",
         cell: ({ row }) => (
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
-              <Typography color="text.primary">{row.original.name}</Typography>
+              <Typography color="text.primary" className="font-medium">
+                {row.original.brand}
+              </Typography>
             </div>
           </div>
         ),
       }),
 
-      columnHelper.accessor("parentId", {
-        header: "Parent Category",
-        cell: ({ row }) => {
-          const parentName = data?.filter(
-            (item) => item?.id === row.original.parentId
-          )![0]?.name;
-
-          return <Typography>{parentName}</Typography>;
-        },
-      }),
-      columnHelper.accessor("slug", {
-        header: "Slug",
-        cell: ({ row }) => <Typography>{row.original.slug}</Typography>,
+      columnHelper.accessor("email", {
+        header: "Email",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <Typography color="text.primary" className="font-medium">
+                {row.original.email}
+              </Typography>
+            </div>
+          </div>
+        ),
       }),
 
+      columnHelper.accessor("category", {
+        header: "Category",
+        cell: ({ row }) => <Typography>{row.original.category}</Typography>,
+      }),
+      columnHelper.accessor("package", {
+        header: "Package",
+        cell: ({ row }) => <Typography>{row.original.package}</Typography>,
+      }),
+      columnHelper.accessor("amount", {
+        header: "Amount",
+        cell: ({ row }) => <Typography>{row.original.amount}</Typography>,
+      }),
+      columnHelper.accessor("purchaseDate", {
+        header: "Purchase Date",
+        cell: ({ row }) => <Typography>{row.original.purchaseDate}</Typography>,
+      }),
+      columnHelper.accessor("expiredDate", {
+        header: "Expired Date",
+        cell: ({ row }) => <Typography>{row.original.expiredDate}</Typography>,
+      }),
+      columnHelper.accessor("status", {
+        header: "Status",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <Chip
+              variant="tonal"
+              className="capitalize"
+              label={row.original.status}
+              color={userStatusObj[row.original.status]}
+              size="small"
+            />
+          </div>
+        ),
+      }),
       columnHelper.accessor("action", {
         header: "Action",
         cell: ({ row }) => {
           const [open, setOpen] = useState(false);
           const [editValue, setEditValue] = useState<string>("");
-
-          const handelDelete = async () => {
-            try {
-              await deleteCategory(row.original.id!);
-              window.location.reload();
-            } catch (error) {
-              console.error(error);
-            }
-          };
           return (
             <>
               <div className="flex items-center">
-                <IconButton onClick={() => setOpen(true)}>
-                  <i className="tabler-trash text-[22px] text-textSecondary" />
+                <IconButton>
+                  <Link href={"/"} className="flex">
+                    <i className="tabler-eye text-[22px] text-textSecondary" />
+                  </Link>
                 </IconButton>
+                <OptionMenu
+                  iconClassName="text-[22px] text-textSecondary"
+                  options={[
+                    {
+                      text:
+                        row.original.status === "Block" ? "Unblock" : "Block",
+                      icon: cn(
+                        "text-[22px]",
+                        row.original.status === "Block"
+                          ? "tabler-alert-circle"
+                          : "tabler-alert-circle-off"
+                      ),
+                      menuItemProps: {
+                        className: "flex items-center gap-2 text-textSecondary",
+                      },
+                    },
+                    {
+                      text: "Delete",
+                      icon: "tabler-trash text-[22px] text-textSecondary",
+                      menuItemProps: {
+                        className: "flex items-center gap-2 text-textSecondary",
+                        onClick: () => setOpen(true),
+                      },
+                    },
+                  ]}
+                />
               </div>
               <PermissionDialog
                 open={open}
                 setOpen={setOpen}
                 data={editValue}
-                action={handelDelete}
               />
             </>
           );
@@ -238,7 +297,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   );
 
   const table = useReactTable({
-    data: data as BlogsType[],
+    data: data as UsersType[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter,
@@ -266,27 +325,16 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
 
-  const getAvatar = (params: Pick<UsersType, "avatar" | "fullName">) => {
-    const { avatar, fullName } = params;
-
-    if (avatar) {
-      return <CustomAvatar src={avatar} size={34} />;
-    } else {
-      return (
-        <CustomAvatar size={34}>{getInitials(fullName as string)}</CustomAvatar>
-      );
-    }
+  const handleDelete: Function = (value: string) => {
+    setOpen(true);
+    setEditValue(value);
   };
-
   return (
     <>
       <Card>
-        <CardHeader title="Categories" />
-        <TableFilters
-          setData={setData}
-          //@ts-ignore
-          tableData={tableData}
-        />
+        <CardHeader title="Membership" className="pbe-4" />
+
+        <TableFilters setData={setData} tableData={tableData} />
         <div className="flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4">
           <CustomTextField
             select

@@ -1,95 +1,105 @@
-'use client'
+"use client";
 
 // React Imports
 
 // MUI Imports
-import Button from '@mui/material/Button'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import CardHeader from '@mui/material/CardHeader'
-import Grid from '@mui/material/Grid'
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardHeader from "@mui/material/CardHeader";
+import Grid from "@mui/material/Grid";
 
 // Third-party Imports
-import { Controller, useForm } from 'react-hook-form'
-import { toast } from 'react-toastify'
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 // Components Imports
 
-import CustomTextField from '@core/components/mui/TextField'
-import { useRouter } from 'next/navigation'
+import CustomTextField from "@core/components/mui/TextField";
+import { useRouter } from "next/navigation";
 
 // Styled Component Imports
 
 type FormValues = {
-  name: string
-  slug: string
-  parent: string
-  description: string
-}
+  name: string;
+  slug: string;
+  parent: string;
+  description: string;
+};
 
 const FormValidationBasic = () => {
-  const router = useRouter()
+  const router = useRouter();
   // Hooks
   const {
     control,
     reset,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
       name: undefined,
       slug: undefined,
       parent: undefined,
-      description: undefined
-    }
-  })
+      description: undefined,
+    },
+  });
 
-  const onSubmit = () => toast.success('Form Submitted')
+  const onSubmit = () => toast.success("Form Submitted");
 
   return (
     <Card>
-      <CardHeader title='Categories' />
+      <CardHeader title="Add New Author" />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={6}>
-            <Grid item xs={12} sm={12}>
+            <Grid item xs={12} sm={6}>
               <Controller
-                name='name'
+                name="name"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <CustomTextField
                     {...field}
                     fullWidth
-                    label='Name'
-                    placeholder='Name'
-                    {...(errors.name && { error: true, helperText: 'This field is required.' })}
+                    label="Name"
+                    placeholder="Name"
+                    {...(errors.name && {
+                      error: true,
+                      helperText: "This field is required.",
+                    })}
                   />
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={12}>
+            <Grid item xs={12} sm={6}>
               <Controller
-                name='slug'
+                name="slug"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <CustomTextField
                     {...field}
                     fullWidth
-                    label='Slug'
-                    placeholder='Slug'
-                    {...(errors.slug && { error: true, helperText: 'This field is required.' })}
+                    label="Slug"
+                    placeholder="Slug"
+                    {...(errors.slug && {
+                      error: true,
+                      helperText: "This field is required.",
+                    })}
                   />
                 )}
               />
             </Grid>
 
-            <Grid item xs={12} className='flex gap-4'>
-              <Button variant='contained' type='submit'>
+            <Grid item xs={12} className="flex gap-4">
+              <Button variant="contained" type="submit">
                 Submit
               </Button>
-              <Button variant='tonal' color='secondary' type='button' onClick={() => router.back()}>
+              <Button
+                variant="tonal"
+                color="secondary"
+                type="button"
+                onClick={() => router.back()}>
                 Cancle
               </Button>
             </Grid>
@@ -97,7 +107,7 @@ const FormValidationBasic = () => {
         </form>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default FormValidationBasic
+export default FormValidationBasic;

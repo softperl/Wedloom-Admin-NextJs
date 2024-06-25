@@ -1,5 +1,5 @@
 // React Imports
-import { useState, useEffect } from 'react'
+import { useState, useEffect, SyntheticEvent, forwardRef } from 'react'
 
 // MUI Imports
 import CardContent from '@mui/material/CardContent'
@@ -11,12 +11,32 @@ import type { UsersType } from '@/types/apps/userTypes'
 
 // Component Imports
 import CustomTextField from '@core/components/mui/TextField'
+import AppReactDatepicker from '@/libs/styles/AppReactDatepicker'
+import { TextFieldProps } from '@mui/material/TextField'
+import { formatDate } from 'date-fns/format'
+
+type CustomInputProps = TextFieldProps & {
+  label?: string
+  end: Date | number
+  start: Date | number
+}
+
+const CustomInput = forwardRef((props: CustomInputProps, ref) => {
+  // Vars
+  const startDate = props.start !== null ? formatDate(props.start, 'MM/dd/yyyy') : ''
+  const endDate = props.end !== null ? ` - ${formatDate(props.end, 'MM/dd/yyyy')}` : null
+  const value = `${startDate}${endDate !== null ? endDate : ''}`
+
+  return <CustomTextField fullWidth inputRef={ref} label={props.label || ''} {...props} value={value} />
+})
 
 const TableFilters = ({ setData, tableData }: { setData: any; tableData?: UsersType[] }) => {
   // States
   const [role, setRole] = useState<UsersType['role']>('')
   const [plan, setPlan] = useState<UsersType['currentPlan']>('')
   const [status, setStatus] = useState<UsersType['status']>('')
+  const [startDate, setStartDate] = useState<Date | undefined | null>(null)
+  const [endDate, setEndDate] = useState<Date | undefined | null>(null)
 
   useEffect(() => {
     const filteredData = tableData?.filter(user => {
@@ -30,25 +50,29 @@ const TableFilters = ({ setData, tableData }: { setData: any; tableData?: UsersT
     setData(filteredData)
   }, [role, plan, status, tableData, setData])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleDateChange = (dates: [Date | null, Date | null], event: SyntheticEvent<any, Event> | undefined) => {
+    const [start, end] = dates
+
+    setStartDate(start)
+    setEndDate(end)
+  }
+
   return (
     <CardContent>
       <Grid container spacing={6}>
         <Grid item xs={12} sm={4}>
-          <CustomTextField
-            select
-            fullWidth
-            id='select-role'
-            value={role}
-            onChange={e => setRole(e.target.value)}
-            SelectProps={{ displayEmpty: true }}
-          >
-            <MenuItem value=''>Select Role</MenuItem>
-            <MenuItem value='admin'>Admin</MenuItem>
-            <MenuItem value='author'>Author</MenuItem>
-            <MenuItem value='editor'>Editor</MenuItem>
-            <MenuItem value='maintainer'>Maintainer</MenuItem>
-            <MenuItem value='subscriber'>Subscriber</MenuItem>
-          </CustomTextField>
+          <AppReactDatepicker
+            selectsRange
+            endDate={endDate}
+            selected={startDate}
+            startDate={startDate}
+            id='date-range-picker'
+            placeholderText='Join Date'
+            onChange={handleDateChange}
+            shouldCloseOnSelect={false}
+            customInput={<CustomInput start={startDate as Date | number} end={endDate as Date | number} />}
+          />
         </Grid>
         <Grid item xs={12} sm={4}>
           <CustomTextField
@@ -59,11 +83,8 @@ const TableFilters = ({ setData, tableData }: { setData: any; tableData?: UsersT
             onChange={e => setPlan(e.target.value)}
             SelectProps={{ displayEmpty: true }}
           >
-            <MenuItem value=''>Select Plan</MenuItem>
+            <MenuItem value=''>Categories</MenuItem>
             <MenuItem value='basic'>Basic</MenuItem>
-            <MenuItem value='company'>Company</MenuItem>
-            <MenuItem value='enterprise'>Enterprise</MenuItem>
-            <MenuItem value='team'>Team</MenuItem>
           </CustomTextField>
         </Grid>
         <Grid item xs={12} sm={4}>
@@ -75,10 +96,8 @@ const TableFilters = ({ setData, tableData }: { setData: any; tableData?: UsersT
             onChange={e => setStatus(e.target.value)}
             SelectProps={{ displayEmpty: true }}
           >
-            <MenuItem value=''>Select Status</MenuItem>
-            <MenuItem value='pending'>Pending</MenuItem>
-            <MenuItem value='active'>Active</MenuItem>
-            <MenuItem value='inactive'>Inactive</MenuItem>
+            <MenuItem value=''>City</MenuItem>
+            <MenuItem value='Rajbari'>Rajbari</MenuItem>
           </CustomTextField>
         </Grid>
       </Grid>
