@@ -101,7 +101,7 @@ const FormValidationBasic = ({ categories }: any) => {
               <Controller
                 name='parent'
                 control={control}
-                rules={{ required: true }}
+                rules={{ required: false }}
                 render={({ field }) => (
                   <CustomTextField select fullWidth label='Parent' {...field} error={Boolean(errors.parent)}>
                     <MenuItem value=''>Select Parent Category</MenuItem>
