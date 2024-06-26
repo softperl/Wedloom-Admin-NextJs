@@ -56,6 +56,7 @@ import TableFilters from "./TableFilters";
 import { formatDate } from "date-fns/format";
 import PermissionDialog from "@/components/dialogs/PermissionDialog";
 import useUi from "@/lib/hooks/useUi";
+import { useRouter } from "next/navigation";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -163,6 +164,12 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState(...[tableData]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const router = useRouter();
+  const { refreash } = useUi();
+
+  useEffect(() => {
+    router.refresh();
+  }, [refreash]);
 
   const columns = useMemo<ColumnDef<UsersTypeWithAction, any>[]>(
     () => [
@@ -258,9 +265,11 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
             try {
               setOpen(false);
               await deletePost(row.original.id!);
+              router.refresh();
               setRefreash(!refreash);
             } catch (error) {
               console.error(error);
+            } finally {
             }
           };
           return (
@@ -350,6 +359,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
 
   return (
     <>
+      <button onClick={() => router.refresh()}>test</button>
       <Card>
         <CardHeader title="Blogs" className="pbe-4" />
         <TableFilters
