@@ -21,6 +21,7 @@ import MenuItem from "@mui/material/MenuItem";
 import FormHelperText from "@mui/material/FormHelperText";
 import Typography from "@mui/material/Typography";
 import useImagePreview from "@/lib/hooks/useImagePreview";
+import { useRef, useState } from "react";
 
 // Styled Component Imports
 
@@ -35,6 +36,10 @@ type FormValues = {
 };
 
 const FormValidationBasic = () => {
+  const [codeFile, setCodeFile] = useState<string | ArrayBuffer | null>(null);
+  const [selectedCodeFile, setSelectedCodeFile] = useState<File | null>(null);
+  const codeFiletRef = useRef<HTMLInputElement | null>(null);
+
   const router = useRouter();
   // Hooks
   const {
@@ -60,6 +65,30 @@ const FormValidationBasic = () => {
   });
 
   const onSubmit = () => toast.success("Form Submitted");
+
+  const handleCodeFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedCodeFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCodeFile(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveCodeFile = () => {
+    setCodeFile(null);
+    setSelectedCodeFile(null);
+    resetCodeFile();
+  };
+
+  const resetCodeFile = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   return (
     <Card>
@@ -189,19 +218,21 @@ const FormValidationBasic = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleFileChange}
-                ref={fileInputRef}
+                onChange={handleCodeFileChange}
+                ref={codeFiletRef}
                 className="hidden"
               />
               <Button
                 variant="contained"
                 onClick={() => {
-                  fileInputRef.current?.click();
+                  codeFiletRef.current?.click();
                 }}
                 startIcon={<i className="tabler-library-photo" />}>
                 Source File
               </Button>
-              {selectedFile && <Typography>{selectedFile?.name}</Typography>}
+              {selectedCodeFile && (
+                <Typography>{selectedCodeFile?.name}</Typography>
+              )}
             </Grid>
 
             <Grid item>

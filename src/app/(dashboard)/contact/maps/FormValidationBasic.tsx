@@ -48,7 +48,7 @@ const FormValidationBasic = () => {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={6}>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12}>
               <Controller
                 name="maps"
                 control={control}
@@ -57,8 +57,10 @@ const FormValidationBasic = () => {
                   return (
                     <CustomTextField
                       {...field}
+                      multiline
                       fullWidth
-                      label="Map"
+                      rows={4}
+                      label="Embed Map "
                       {...(errors.maps && {
                         error: true,
                         helperText: "This field is required.",
@@ -67,6 +69,22 @@ const FormValidationBasic = () => {
                   );
                 }}
               />
+            </Grid>
+            <Grid item xs={12}>
+              {watch("maps") ? (
+                <iframe
+                  src={watch("maps")}
+                  width="100%"
+                  height="450"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="rounded-md"></iframe>
+              ) : (
+                <div className="py-28 bg-gray-100 rounded-md flex items-center justify-center">
+                  <p>Please add embed link</p>
+                </div>
+              )}
             </Grid>
 
             <Grid item xs={12} className="flex gap-4">

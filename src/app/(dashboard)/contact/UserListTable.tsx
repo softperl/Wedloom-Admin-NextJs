@@ -290,14 +290,10 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
 
-  const handleDelete: Function = (value: string) => {
-    setOpen(true);
-    setEditValue(value);
-  };
   return (
     <>
       <Card>
-        <CardHeader title="Membership" className="pbe-4" />
+        <CardHeader title="Contacts" className="pbe-4" />
 
         <TableFilters setData={setData} tableData={tableData} />
         <div className="flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4">
