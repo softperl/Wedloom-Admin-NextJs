@@ -19,6 +19,8 @@ import CustomTextField from "@core/components/mui/TextField";
 import { useRouter } from "next/navigation";
 import MenuItem from "@mui/material/MenuItem";
 import FormHelperText from "@mui/material/FormHelperText";
+import Typography from "@mui/material/Typography";
+import useImagePreview from "@/lib/hooks/useImagePreview";
 
 // Styled Component Imports
 
@@ -28,11 +30,20 @@ type FormValues = {
   category: string;
   price: string;
   thumbnail: string;
+  fonts: string;
+  images: string;
 };
 
 const FormValidationBasic = () => {
   const router = useRouter();
   // Hooks
+  const {
+    fileInputRef,
+    selectedFile,
+    handleFileChange,
+    imageSrc,
+    handleRemove,
+  } = useImagePreview();
   const {
     control,
     reset,
@@ -43,7 +54,8 @@ const FormValidationBasic = () => {
       name: undefined,
       cardType: undefined,
       category: undefined,
-      img: undefined,
+      fonts: undefined,
+      images: undefined,
     },
   });
 
@@ -141,26 +153,92 @@ const FormValidationBasic = () => {
                 )}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <Controller
-                name="thumbnail"
+                name="fonts"
                 control={control}
                 rules={{ required: true }}
-                render={({ field }) => (
+                render={({ field: { value, onChange } }) => (
                   <CustomTextField
-                    {...field}
+                    select
                     fullWidth
-                    label="Thumbnail"
-                    placeholder="Thumbnail"
-                    {...(errors.name && {
-                      error: true,
-                      helperText: "This field is required.",
-                    })}
-                  />
+                    SelectProps={{ multiple: true }}
+                    label="Fonts"
+                    value={Array.isArray(value) ? value : []}
+                    onChange={onChange}
+                    error={Boolean(errors.fonts)}>
+                    <MenuItem value="">Select Fonts</MenuItem>
+                    <MenuItem value="Roboto">Roboto</MenuItem>
+                    <MenuItem value="Poppins - Regular">
+                      Poppins - Regular
+                    </MenuItem>
+                    <MenuItem value="Fantasy">Fantasy</MenuItem>
+                  </CustomTextField>
                 )}
               />
+              {errors.fonts && (
+                <FormHelperText error>This field is required.</FormHelperText>
+              )}
+            </Grid>
+            <Grid
+              item
+              xs={12}
+              sm={6}
+              className="flex items-center gap-5 relative sm:mt-[1.17rem]">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+                className="hidden"
+              />
+              <Button
+                variant="contained"
+                onClick={() => {
+                  fileInputRef.current?.click();
+                }}
+                startIcon={<i className="tabler-library-photo" />}>
+                Source File
+              </Button>
+              {selectedFile && <Typography>{selectedFile?.name}</Typography>}
             </Grid>
 
+            <Grid item>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+                className="hidden"
+              />
+              {imageSrc ? (
+                <div className="relative aspect-auto w-60">
+                  <img
+                    src={imageSrc as string}
+                    alt="Preview"
+                    className="aspect-auto w-60 object-contain bg-gray-100 rounded-md mt-6"
+                  />
+                  <i
+                    onClick={handleRemove}
+                    className="tabler-trash absolute right-2 top-8 text-red-500"></i>
+                </div>
+              ) : (
+                <div className="aspect-video w-60 border rounded-md flex items-center justify-center cursor-pointer text-center mt-6">
+                  Preview
+                </div>
+              )}
+            </Grid>
+            <Grid item className="flex items-center justify-center">
+              <Button
+                variant="contained"
+                onClick={() => {
+                  fileInputRef.current?.click();
+                }}
+                startIcon={<i className="tabler-library-photo" />}>
+                Choose File
+              </Button>
+            </Grid>
             <Grid item xs={12} className="flex gap-4">
               <Button variant="contained" type="submit">
                 Submit

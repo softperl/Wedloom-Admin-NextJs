@@ -109,11 +109,17 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           <MenuItem href={`/membership/plan`}>Plan</MenuItem>
         </SubMenu>
         <SubMenu label={"Cards"} icon={<i className="tabler-cards" />}>
+          <MenuItem href={`/cards/marketplace`}>Marketplace</MenuItem>
           <MenuItem href={`/cards`}>All Cards</MenuItem>
           <MenuItem href={`/cards/new`}>Add Card</MenuItem>
           <MenuItem href={`/cards/categories`}>Categories</MenuItem>
+          <MenuItem href={`/cards/fonts`}>Card Fonts</MenuItem>
         </SubMenu>
-
+        <SubMenu label={"Contact Us"} icon={<i className="tabler-headset" />}>
+          <MenuItem href="/contact">All List</MenuItem>
+          <MenuItem href="/contact/info">Contact Info</MenuItem>
+          <MenuItem href="/contact/maps">Maps</MenuItem>
+        </SubMenu>
         <SubMenu label={"Settings"} icon={<i className="tabler-settings" />}>
           <MenuItem href={`/vendorcategory`}>Vendor Category</MenuItem>
           <MenuItem href={`/city`}>City</MenuItem>
