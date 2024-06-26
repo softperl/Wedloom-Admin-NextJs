@@ -14,22 +14,17 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 // Components Imports
-import MenuItem from "@mui/material/MenuItem";
 
-import FormHelperText from "@mui/material/FormHelperText";
-
+import { newCategory } from "@/lib/api";
+import { handelError } from "@/lib/utils";
 import CustomTextField from "@core/components/mui/TextField";
 import { useRouter } from "next/navigation";
-import { handelError } from "@/lib/utils";
-import { newCategory } from "@/lib/api";
 
 type FormValues = {
   name: string;
-  // slug: string
-  parent: string;
 };
 
-const FormValidationBasic = ({ categories }: any) => {
+const FormValidationBasic = () => {
   const router = useRouter();
   // Hooks
   const {
@@ -40,8 +35,6 @@ const FormValidationBasic = ({ categories }: any) => {
   } = useForm<FormValues>({
     defaultValues: {
       name: undefined,
-      // slug: undefined,
-      parent: undefined,
     },
   });
 
@@ -82,48 +75,6 @@ const FormValidationBasic = ({ categories }: any) => {
                   />
                 )}
               />
-            </Grid>
-            {/* <Grid item xs={12} sm={12}>
-              <Controller
-                name='slug'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <CustomTextField
-                    {...field}
-                    fullWidth
-                    label='Slug'
-                    placeholder='Slug'
-                    {...(errors.slug && { error: true, helperText: 'This field is required.' })}
-                  />
-                )}
-              />
-            </Grid> */}
-
-            <Grid item xs={12} sm={6}>
-              <Controller
-                name="parent"
-                control={control}
-                rules={{ required: false }}
-                render={({ field }) => (
-                  <CustomTextField
-                    select
-                    fullWidth
-                    label="Parent"
-                    {...field}
-                    error={Boolean(errors.parent)}>
-                    <MenuItem value="">Select Parent Category</MenuItem>
-                    {categories.map((category: any) => (
-                      <MenuItem key={category.id} value={category.id}>
-                        {category.name}
-                      </MenuItem>
-                    ))}
-                  </CustomTextField>
-                )}
-              />
-              {errors.parent && (
-                <FormHelperText error>This field is required.</FormHelperText>
-              )}
             </Grid>
 
             <Grid item xs={12} className="flex gap-4">

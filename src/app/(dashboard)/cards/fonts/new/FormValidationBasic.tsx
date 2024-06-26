@@ -26,6 +26,7 @@ import Typography from "@mui/material/Typography";
 
 type FormValues = {
   fontName: string;
+  fontType: string;
   sourceFile: string;
 };
 
@@ -41,11 +42,9 @@ const FormValidationBasic = () => {
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      name: undefined,
-      cardType: undefined,
-      category: undefined,
-      fonts: undefined,
-      images: undefined,
+      fontName: "",
+      fontType: "",
+      sourceFile: "",
     },
   });
 
@@ -98,6 +97,30 @@ const FormValidationBasic = () => {
                   Choose File
                 </Button>
                 {selectedFile && <Typography>{selectedFile?.name}</Typography>}
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="fontType"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <CustomTextField
+                      select
+                      fullWidth
+                      SelectProps={{ multiple: true }}
+                      label="Fonts"
+                      value={Array.isArray(value) ? value : []}
+                      onChange={onChange}
+                      error={Boolean(errors.fontType)}>
+                      <MenuItem value="">Select Font Type</MenuItem>
+                      <MenuItem value="Bold">Bold</MenuItem>
+                      <MenuItem value="Italic">Italic</MenuItem>
+                    </CustomTextField>
+                  )}
+                />
+                {errors.fontType && (
+                  <FormHelperText error>This field is required.</FormHelperText>
+                )}
               </Grid>
 
               <Grid item xs={12} className="flex gap-4">

@@ -67,7 +67,6 @@ export type BlogsType = {
   id?: string;
   name: string;
   slug: string;
-  parentId: string | null;
 };
 
 type UsersTypeWithAction = BlogsType & {
@@ -189,17 +188,6 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
         ),
       }),
 
-      columnHelper.accessor("parentId", {
-        header: "Parent Category",
-        cell: ({ row }) => {
-          const parentName = data?.filter(
-            (item) => item?.id === row.original.parentId
-          );
-
-          console.log({ data, parentName });
-          return <Typography>{row.original.parentId}</Typography>;
-        },
-      }),
       columnHelper.accessor("slug", {
         header: "Slug",
         cell: ({ row }) => <Typography>{row.original.slug}</Typography>,
