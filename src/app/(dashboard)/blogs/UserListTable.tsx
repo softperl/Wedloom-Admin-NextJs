@@ -55,6 +55,7 @@ import CardHeader from "@mui/material/CardHeader";
 import TableFilters from "./TableFilters";
 import { formatDate } from "date-fns/format";
 import PermissionDialog from "@/components/dialogs/PermissionDialog";
+import useUi from "@/lib/hooks/useUi";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -172,7 +173,8 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
             <div className="flex flex-col">
               <Typography
                 color="text.primary"
-                className="font-medium capitalize">
+                className="font-medium capitalize"
+              >
                 {row.index + 1}
               </Typography>
             </div>
@@ -200,7 +202,8 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
             <div className="flex flex-col">
               <Typography
                 color="text.primary"
-                className="font-medium capitalize">
+                className="font-medium capitalize"
+              >
                 {row.original.author}
               </Typography>
             </div>
@@ -214,7 +217,8 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
             <div className="flex flex-col">
               <Typography
                 color="text.primary"
-                className="font-medium capitalize">
+                className="font-medium capitalize"
+              >
                 {row.original.category.name}
               </Typography>
             </div>
@@ -249,11 +253,12 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
         cell: ({ row }) => {
           const [open, setOpen] = useState(false);
           const [editValue, setEditValue] = useState<string>("");
+          const { refreash, setRefreash } = useUi();
           const handelDelete = async () => {
             try {
               setOpen(false);
               await deletePost(row.original.id!);
-              window.location.reload();
+              setRefreash(!refreash);
             } catch (error) {
               console.error(error);
             }
@@ -357,7 +362,8 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
             select
             value={table.getState().pagination.pageSize}
             onChange={(e) => table.setPageSize(Number(e.target.value))}
-            className="is-[70px]">
+            className="is-[70px]"
+          >
             <MenuItem value="10">10</MenuItem>
             <MenuItem value="25">25</MenuItem>
             <MenuItem value="50">50</MenuItem>
@@ -373,14 +379,16 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
               color="secondary"
               variant="tonal"
               startIcon={<i className="tabler-upload" />}
-              className="is-full sm:is-auto">
+              className="is-full sm:is-auto"
+            >
               Export
             </Button>
             <Link href={"/blogs/new"}>
               <Button
                 variant="contained"
                 startIcon={<i className="tabler-plus" />}
-                className="is-full sm:is-auto">
+                className="is-full sm:is-auto"
+              >
                 Add New Blog
               </Button>
             </Link>
@@ -401,7 +409,8 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
                               "cursor-pointer select-none":
                                 header.column.getCanSort(),
                             })}
-                            onClick={header.column.getToggleSortingHandler()}>
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
                             {flexRender(
                               header.column.columnDef.header,
                               header.getContext()
@@ -426,7 +435,8 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
                 <tr>
                   <td
                     colSpan={table.getVisibleFlatColumns().length}
-                    className="text-center">
+                    className="text-center"
+                  >
                     No data available
                   </td>
                 </tr>
@@ -442,7 +452,8 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
                         key={row.id}
                         className={classnames({
                           selected: row.getIsSelected(),
-                        })}>
+                        })}
+                      >
                         {row.getVisibleCells().map((cell) => (
                           <td key={cell.id}>
                             {flexRender(
