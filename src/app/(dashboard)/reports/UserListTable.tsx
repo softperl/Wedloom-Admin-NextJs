@@ -44,13 +44,17 @@ import CustomTextField from "@core/components/mui/TextField";
 import OptionMenu from "@core/components/option-menu";
 import TableFilters from "./TableFilters";
 
+// Util Imports
+
 // Style Imports
 import tableStyles from "@core/styles/table.module.css";
 import { formatDate } from "date-fns/format";
-import PermissionDialog from "@/components/dialogs/PermissionDialog";
 import Link from "next/link";
+import PermissionDialog from "@/components/dialogs/PermissionDialog";
 import Chip from "@mui/material/Chip";
 import { cn } from "@/lib/utils";
+import CustomAvatar from "@/@core/components/mui/Avatar";
+import { getInitials } from "@/utils/getInitials";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -62,14 +66,15 @@ declare module "@tanstack/table-core" {
 }
 
 export type UsersType = {
-  id: string;
-  fullName: string;
-  subject: string;
-  email: string;
+  id?: string;
+  reportUser: string;
+  reportEmail: string;
+  reportVendor: string;
+  reportVendorEmail: string;
+  brand: string;
+  reportReason: string;
   createdAt: string;
-  queryType: "User" | "Vendor";
-  message: string;
-  status: "Resolved" | "Pending";
+  status: "Resolved" | "Pensing";
 };
 
 type UsersTypeWithAction = UsersType & {
@@ -145,8 +150,8 @@ const userRoleObj: UserRoleType = {
 };
 
 const userStatusObj: UserStatusType = {
-  Resolved: "success",
   Pending: "warning",
+  Resolved: "success",
 };
 
 // Column Definitions
@@ -154,7 +159,8 @@ const columnHelper = createColumnHelper<UsersTypeWithAction>();
 
 const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
   // States
-
+  const [open, setOpen] = useState(false);
+  const [editValue, setEditValue] = useState<string>("");
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -180,31 +186,58 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           </div>
         ),
       }),
-      columnHelper.accessor("fullName", {
-        header: "Full Name",
-        cell: ({ row }) => <Typography>{row.original.fullName}</Typography>,
+      columnHelper.accessor("reportUser", {
+        header: "Report User",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-4">
+            {getAvatar({
+              avatar: "/",
+              fullName: row.original.reportUser,
+            })}
+            <div className="flex flex-col">
+              <Typography color="text.primary" className="font-medium">
+                {row.original.reportUser}
+              </Typography>
+              <Typography variant="body2">
+                {row.original.reportEmail}
+              </Typography>
+            </div>
+          </div>
+        ),
       }),
-      columnHelper.accessor("subject", {
-        header: "subject",
-        cell: ({ row }) => <Typography>{row.original.subject}</Typography>,
+      columnHelper.accessor("reportVendor", {
+        header: "Report Vendor",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-4">
+            {getAvatar({
+              avatar: "/",
+              fullName: row.original.reportVendor,
+            })}
+            <div className="flex flex-col">
+              <Typography color="text.primary" className="font-medium">
+                {row.original.reportVendor}
+              </Typography>
+              <Typography variant="body2">
+                {row.original.reportVendorEmail}
+              </Typography>
+            </div>
+          </div>
+        ),
       }),
-      columnHelper.accessor("email", {
-        header: "Email",
-        cell: ({ row }) => <Typography>{row.original.email}</Typography>,
-      }),
-      columnHelper.accessor("queryType", {
-        header: "Type",
-        cell: ({ row }) => <Typography>{row.original.queryType}</Typography>,
-      }),
+
       columnHelper.accessor("createdAt", {
-        header: "date",
+        header: "Reported Date",
         cell: ({ row }) => (
           <Typography>
-            {" "}
             {formatDate(row.original.createdAt, "ii MMM Y")}
           </Typography>
         ),
       }),
+      columnHelper.accessor("reportReason", {
+        header: "Report Reason",
+        cell: ({ row }) => <Typography>{row.original.reportReason}</Typography>,
+      }),
+
       columnHelper.accessor("status", {
         header: "Status",
         cell: ({ row }) => (
@@ -219,58 +252,50 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           </div>
         ),
       }),
+
       columnHelper.accessor("action", {
         header: "Action",
-        cell: ({ row }) => {
-          const [open, setOpen] = useState(false);
-          const [editValue, setEditValue] = useState<string>("");
-          return (
-            <>
-              <div className="flex items-center">
-                <IconButton>
-                  <Link
-                    href={`/contact/view/${row.original?.id}`}
-                    className="flex">
-                    <i className="tabler-eye text-[22px] text-textSecondary" />
-                  </Link>
-                </IconButton>
-                <OptionMenu
-                  iconClassName="text-[22px] text-textSecondary"
-                  options={[
-                    {
-                      text:
-                        row.original?.status === "Pending"
-                          ? "Mark Resolved"
-                          : "Mark Pending",
-                      icon: cn(
-                        "text-[22px] text-textSecondary",
-                        row.original?.status === "Pending"
-                          ? "tabler-checks "
-                          : "tabler-info-circle "
-                      ),
-                      menuItemProps: {
-                        className: "flex items-center gap-2 text-textSecondary",
-                      },
+        cell: ({ row }) => (
+          <div className="flex items-center">
+            <IconButton>
+              <Link href={"/"} className="flex">
+                <i className="tabler-eye text-[22px] text-textSecondary" />
+              </Link>
+            </IconButton>
+            <OptionMenu
+              iconClassName="text-[22px] text-textSecondary"
+              options={[
+                {
+                  text: row.original.status === "Block" ? "Unblock" : "Block",
+                  icon: cn(
+                    "text-[22px]",
+                    row.original.status === "Block"
+                      ? "tabler-alert-circle"
+                      : "tabler-alert-circle-off"
+                  ),
+                  menuItemProps: {
+                    className: "flex items-center gap-2 text-textSecondary",
+                    onClick: () => {
+                      console.log("Block");
                     },
-                    {
-                      text: "Delete",
-                      icon: "tabler-trash text-[22px] text-textSecondary",
-                      menuItemProps: {
-                        className: "flex items-center gap-2 text-textSecondary",
-                        onClick: () => setOpen(true),
-                      },
+                  },
+                },
+                {
+                  text: "Delete",
+                  icon: (
+                    <i className="tabler-trash text-[22px] text-textSecondary" />
+                  ),
+                  menuItemProps: {
+                    className: "flex items-center gap-2 text-textSecondary",
+                    onClick: () => {
+                      handleDelete(row.original.id);
                     },
-                  ]}
-                />
-              </div>
-              <PermissionDialog
-                open={open}
-                setOpen={setOpen}
-                data={editValue}
-              />
-            </>
-          );
-        },
+                  },
+                },
+              ]}
+            />
+          </div>
+        ),
         enableSorting: false,
       }),
     ],
@@ -307,11 +332,27 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
 
+  const getAvatar = (params: Pick<UsersType, "avatar" | "fullName">) => {
+    const { avatar, fullName } = params;
+
+    if (avatar) {
+      return <CustomAvatar src={avatar} size={34} />;
+    } else {
+      return (
+        <CustomAvatar size={34}>{getInitials(fullName as string)}</CustomAvatar>
+      );
+    }
+  };
+
+  const handleDelete: Function = (value: string) => {
+    setOpen(true);
+    setEditValue(value);
+  };
+
   return (
     <>
       <Card>
-        <CardHeader title="Contacts" className="pbe-4" />
-
+        <CardHeader title="Users" className="pbe-4" />
         <TableFilters setData={setData} tableData={tableData} />
         <div className="flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4">
           <CustomTextField
@@ -421,6 +462,7 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           }}
         />
       </Card>
+      <PermissionDialog open={open} setOpen={setOpen} data={editValue} />
     </>
   );
 };

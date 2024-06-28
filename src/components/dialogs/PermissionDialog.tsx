@@ -17,7 +17,7 @@ import DialogCloseButton from "./DialogCloseButton";
 type PermissionDialogProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  data?: string;
+  data?: any;
   action?: () => void;
 };
 
@@ -108,12 +108,13 @@ const PermissionDialog = ({
         className="flex flex-col gap-2 text-center sm:pbs-16 sm:pbe-6 sm:pli-16">
         Are you sure?
         <Typography component="span" className="flex flex-col text-center">
-          Do you really want to delete these records? This process cannot be
-          undone.
+          {data
+            ? data?.title
+            : "Do you really want to delete these records? This process cannot be undone."}
         </Typography>
         <div className="flex gap-2 justify-center">
           <Button onClick={action} variant="contained">
-            Delete
+            {data?.button ? data?.button : "Delete"}
           </Button>
           <Button onClick={handleClose} variant="contained" color="secondary">
             Cancel

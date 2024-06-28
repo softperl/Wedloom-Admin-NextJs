@@ -1,13 +1,10 @@
-// MUI Imports
-import Grid from "@mui/material/Grid";
-
 // Component Imports
-
-import UserListTable from "./UserListTable";
 import { fetchFn } from "@/lib/servet-utils";
+import Grid from "@mui/material/Grid";
 import UserListCards from "./UserListCards";
+import UserListTable from "./UserListTable";
 
-export default async function page({
+const UserListApp = async ({
   searchParams,
 }: {
   searchParams?: {
@@ -15,39 +12,57 @@ export default async function page({
     page?: string;
     perPage?: string;
   };
-}) {
+}) => {
   const q = searchParams?.q || "";
   const currentPage = Number(searchParams?.page) || 1;
   const perPage = Number(searchParams?.perPage) || 50;
   let data = null;
   let totalPages = 1;
   let total = 0;
-
   try {
     data = await fetchFn(
-      `/blog/post/get-all?q=${q}&page=${currentPage}&perPage=${perPage}`,
+      `/admin/auth/get-all-users?q=${q}&page=${currentPage}&perPage=${perPage}`,
       {
         method: "GET",
         next: {
           revalidate: 0,
-          cache: "no-store",
+          tags: ["users"],
         },
       }
     );
+    console.log(data);
 
     totalPages = data.totalPages;
     total = data.total;
   } catch (error) {
     console.log(error);
   }
+
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <UserListCards />
       </Grid>
       <Grid item xs={12}>
-        <UserListTable tableData={data.posts || []} />
+        <UserListTable
+          tableData={[
+            {
+              id: "erd764",
+              reportUser: "Shipon",
+              reportEmail: "abc@gmail.com",
+              reportVendor: "Avi",
+              reportVendorEmail: "avi@gmail.com",
+              createdAt: "2023-05-01",
+              brand: "samsung",
+              reportReason:
+                "lorem text lorem text lorem text lorem text lorem text ",
+              status: "Resolved",
+            },
+          ]}
+        />
       </Grid>
     </Grid>
   );
-}
+};
+
+export default UserListApp;

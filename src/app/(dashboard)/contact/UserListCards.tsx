@@ -1,51 +1,51 @@
 // MUI Imports
-import Grid from '@mui/material/Grid'
+import Grid from "@mui/material/Grid";
 
 // Type Imports
-import type { UserDataType } from '@components/card-statistics/HorizontalWithSubtitle'
+import type { UserDataType } from "@components/card-statistics/HorizontalWithSubtitle";
 
 // Component Imports
-import HorizontalWithSubtitle from '@components/card-statistics/HorizontalWithSubtitle'
+import HorizontalWithSubtitle from "@components/card-statistics/HorizontalWithSubtitle";
 
 // Vars
 const data: UserDataType[] = [
   {
-    title: 'Total Brands',
-    value: '21,459',
-    avatarIcon: 'tabler-users',
-    avatarColor: 'primary',
-    change: 'positive',
-    changeNumber: '29%',
-    subTitle: 'Total User'
+    title: "Total Queries",
+    value: "21,459",
+    avatarIcon: "tabler-users",
+    avatarColor: "primary",
+    change: "positive",
+    changeNumber: "29%",
+    subTitle: "Total User",
   },
   {
-    title: 'Active Membership',
-    value: '4,567',
-    avatarIcon: 'tabler-user-plus',
-    avatarColor: 'error',
-    change: 'positive',
-    changeNumber: '18%',
-    subTitle: 'Last week analytics'
+    title: "Users Type",
+    value: "4,567",
+    avatarIcon: "tabler-user-plus",
+    avatarColor: "error",
+    change: "positive",
+    changeNumber: "18%",
+    subTitle: "Last week analytics",
   },
   {
-    title: 'Monthly Membership',
-    value: '19,860',
-    avatarIcon: 'tabler-user-check',
-    avatarColor: 'success',
-    change: 'negative',
-    changeNumber: '14%',
-    subTitle: 'Last week analytics'
+    title: "Vendors Type",
+    value: "19,860",
+    avatarIcon: "tabler-user-check",
+    avatarColor: "success",
+    change: "negative",
+    changeNumber: "14%",
+    subTitle: "Last week analytics",
   },
   {
-    title: 'Yearly Membership',
-    value: '237',
-    avatarIcon: 'tabler-user-search',
-    avatarColor: 'warning',
-    change: 'positive',
-    changeNumber: '42%',
-    subTitle: 'Last week analytics'
-  }
-]
+    title: "Total Resolved",
+    value: "237",
+    avatarIcon: "tabler-user-search",
+    avatarColor: "warning",
+    change: "positive",
+    changeNumber: "42%",
+    subTitle: "Last week analytics",
+  },
+];
 
 const UserListCards = () => {
   return (
@@ -56,7 +56,7 @@ const UserListCards = () => {
         </Grid>
       ))}
     </Grid>
-  )
-}
+  );
+};
 
-export default UserListCards
+export default UserListCards;

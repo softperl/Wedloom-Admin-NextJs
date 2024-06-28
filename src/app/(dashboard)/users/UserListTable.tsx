@@ -71,7 +71,7 @@ export type UsersType = {
   createdAt: string;
   eventDate: string;
   eventType: string;
-  status: string;
+  status: "Active" | "Block";
 };
 
 type UsersTypeWithAction = UsersType & {

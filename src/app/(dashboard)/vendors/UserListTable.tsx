@@ -53,6 +53,8 @@ import PermissionDialog from "@/components/dialogs/PermissionDialog";
 import Link from "next/link";
 import Chip from "@mui/material/Chip";
 import { cn } from "@/lib/utils";
+import DialogAddCard from "./DialogAddCard";
+import DialogBlock from "./DialogBlock";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -71,7 +73,7 @@ export type UsersType = {
   createdAt: string;
   category: string;
   city: string;
-  status: string;
+  status: "Active" | "Block";
 };
 
 type UsersTypeWithAction = UsersType & {
@@ -146,9 +148,13 @@ const userRoleObj: UserRoleType = {
   subscriber: { icon: "tabler-user", color: "primary" },
 };
 
-const userStatusObj: UserStatusType = {
+export const userStatusObj: UserStatusType = {
   Active: "success",
   Block: "warning",
+  Pending: "warning",
+  Approved: "success",
+  Rejected: "error",
+  Featured: "primary",
 };
 
 // Column Definitions
@@ -243,8 +249,22 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
             <Chip
               variant="tonal"
               className="capitalize"
-              label={row.original.status}
-              color={userStatusObj[row.original.status]}
+              label={"Active"}
+              color={userStatusObj["Active"]}
+              size="small"
+            />
+            <Chip
+              variant="tonal"
+              className="capitalize"
+              label={"Rejected"}
+              color={userStatusObj["Rejected"]}
+              size="small"
+            />
+            <Chip
+              variant="tonal"
+              className="capitalize"
+              label={"Featured"}
+              color={userStatusObj["Featured"]}
               size="small"
             />
           </div>
@@ -253,44 +273,104 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
       columnHelper.accessor("action", {
         header: "Action",
         cell: ({ row }) => {
+          const [remove, setRemove] = useState(false);
+          const [unBlock, setUnBlock] = useState(false);
+          const [block, setBlock] = useState(false);
+          const [confirmBlock, setConfirmBlock] = useState(false);
+          const [confirmUnBlock, setConfirmUnBlock] = useState(false);
+
+          const handleDelete: Function = (value: string) => {
+            setRemove(true);
+            setEditValue(value);
+          };
+
+          const handleCloseUnblock = () => {
+            setUnBlock(false);
+            setConfirmUnBlock(true);
+          };
+
+          const handleCloseBlock = () => {
+            setBlock(false);
+            setConfirmBlock(true);
+          };
+
           return (
-            <div className="flex items-center">
-              <IconButton>
-                <Link href={"/"} className="flex">
+            <>
+              <div className="flex items-center">
+                <IconButton>
                   <i className="tabler-eye text-[22px] text-textSecondary" />
-                </Link>
-              </IconButton>
-              <OptionMenu
-                iconClassName="text-[22px] text-textSecondary"
-                options={[
-                  {
-                    text: row.original.status === "Block" ? "Unblock" : "Block",
-                    icon: cn(
-                      "text-[22px]",
-                      row.original.status === "Block"
-                        ? "tabler-alert-circle"
-                        : "tabler-alert-circle-off"
-                    ),
-                    menuItemProps: {
-                      className: "flex items-center gap-2 text-textSecondary",
-                      onClick: () => {},
-                    },
-                  },
-                  {
-                    text: "Delete",
-                    icon: (
-                      <i className="tabler-trash text-[22px] text-textSecondary" />
-                    ),
-                    menuItemProps: {
-                      className: "flex items-center gap-2 text-textSecondary",
-                      onClick: () => {
-                        handleDelete(row.original.id);
+                </IconButton>
+                <IconButton onClick={() => setUnBlock(true)}>
+                  <i className="tabler-info-circle text-[20px] text-textSecondary" />
+                </IconButton>
+                <OptionMenu
+                  iconClassName="text-[22px] text-textSecondary"
+                  options={[
+                    {
+                      text:
+                        row.original.status === "Block" ? "Unblock" : "Block",
+                      icon: cn(
+                        "text-[22px]",
+                        row.original.status === "Block"
+                          ? "tabler-alert-circle"
+                          : "tabler-alert-circle-off"
+                      ),
+                      menuItemProps: {
+                        className: "flex items-center gap-2 text-textSecondary",
+                        onClick: () => setBlock(true),
                       },
                     },
-                  },
-                ]}
+
+                    {
+                      text: "Delete",
+                      icon: (
+                        <i className="tabler-trash text-[22px] text-textSecondary" />
+                      ),
+                      menuItemProps: {
+                        className: "flex items-center gap-2 text-textSecondary",
+                        onClick: () => {
+                          handleDelete(row.original.id);
+                        },
+                      },
+                    },
+                  ]}
+                />
+              </div>
+
+              <PermissionDialog
+                open={remove}
+                setOpen={setRemove}
+                data={editValue}
               />
-            </div>
+              <PermissionDialog
+                open={confirmBlock}
+                setOpen={setConfirmBlock}
+                data={{
+                  title:
+                    "Do you really want to block this user? This process cannot be undone.",
+                  button: "Block",
+                }}
+              />
+              <PermissionDialog
+                open={confirmUnBlock}
+                setOpen={setConfirmUnBlock}
+                data={{
+                  title:
+                    "Do you really want to unblock this user? This process cannot be undone.",
+                  button: "Unblock",
+                }}
+              />
+              <DialogAddCard
+                open={unBlock}
+                setOpen={setUnBlock}
+                handleClose={handleCloseUnblock}
+              />
+              <DialogBlock
+                open={block}
+                setOpen={setBlock}
+                handleClose={handleCloseBlock}
+              />
+            </>
           );
         },
         enableSorting: false,
@@ -329,10 +409,6 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
 
-  const handleDelete: Function = (value: string) => {
-    setOpen(true);
-    setEditValue(value);
-  };
   return (
     <>
       <Card>
@@ -451,7 +527,6 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           }}
         />
       </Card>
-      <PermissionDialog open={open} setOpen={setOpen} data={editValue} />
     </>
   );
 };
