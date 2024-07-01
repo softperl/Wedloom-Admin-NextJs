@@ -1,16 +1,18 @@
 "use client";
 
 // MUI Imports
-import { slugify } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 import CustomTextField from "@core/components/mui/TextField";
-import Accordion from "@mui/material/Accordion";
+import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
+import { styled } from "@mui/material/styles";
 import { nanoid } from "nanoid";
 import { SyntheticEvent, useEffect, useState } from "react";
 import {
@@ -20,6 +22,35 @@ import {
   Droppable,
 } from "react-beautiful-dnd";
 import { Controller, useForm } from "react-hook-form";
+
+// Styled component for Accordion component
+const Accordion = styled(MuiAccordion)<AccordionProps>({
+  margin: "0 !important",
+  borderRadius: 0,
+  boxShadow: "none !important",
+  border: "1px solid var(--mui-palette-divider)",
+  "&:not(:last-of-type)": {
+    borderBottom: 0,
+  },
+  "&:before": {
+    display: "none",
+  },
+  "&:first-of-type": {
+    "& .MuiButtonBase-root": {
+      borderTopLeftRadius: "var(--mui-shape-borderRadius)",
+      borderTopRightRadius: "var(--mui-shape-borderRadius)",
+    },
+  },
+  "&:last-of-type": {
+    "& .MuiAccordionSummary-root:not(.Mui-expanded)": {
+      borderBottomLeftRadius: "var(--mui-shape-borderRadius)",
+      borderBottomRightRadius: "var(--mui-shape-borderRadius)",
+    },
+    "& .MuiAccordionSummary-root:is(.Mui-expanded)": {
+      borderBottom: "1px solid var(--mui-palette-divider)",
+    },
+  },
+});
 
 type FormValues = {
   menu: string;
@@ -56,6 +87,12 @@ const FormValidationBasic = () => {
       { id: nanoid(), name: value.menu, children: [] },
     ]);
     reset();
+  };
+
+  const removeMenuItem = (id: string) => {
+    setMenuItems((prevMenuItems) =>
+      prevMenuItems.filter((menuItem) => menuItem.id !== id)
+    );
   };
 
   return (
@@ -101,7 +138,11 @@ const FormValidationBasic = () => {
             <CardHeader title="Menu Structure" />
             {menuItems?.length > 0 && (
               <div className="border-t p-5">
-                <MenuManagement menus={menuItems} setMenus={setMenuItems} />
+                <MenuManagement
+                  menus={menuItems}
+                  setMenus={setMenuItems}
+                  removeMenuItem={removeMenuItem}
+                />
               </div>
             )}
           </Card>
@@ -114,9 +155,11 @@ const FormValidationBasic = () => {
 const MenuManagement = ({
   menus,
   setMenus,
+  removeMenuItem,
 }: {
   menus: MenuItem[];
   setMenus: (menus: MenuItem[]) => void;
+  removeMenuItem: (id: string) => void;
 }) => {
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -138,12 +181,14 @@ const MenuManagement = ({
                   <div
                     ref={provided.innerRef}
                     {...provided.draggableProps}
-                    {...provided.dragHandleProps}>
+                    {...provided.dragHandleProps}
+                    className={cn(index !== 0 && "mt-4")}>
                     <AccordionActions
                       item={menu}
                       index={index}
                       setMenus={setMenus}
                       menus={menus}
+                      removeMenuItem={removeMenuItem}
                     />
                   </div>
                 )}
@@ -162,11 +207,13 @@ const AccordionActions = ({
   index,
   setMenus,
   menus,
+  removeMenuItem,
 }: {
   item: MenuItem;
   index: number;
   setMenus: (menus: MenuItem[]) => void;
   menus: MenuItem[];
+  removeMenuItem: (id: string) => void;
 }) => {
   const [expanded, setExpanded] = useState<string | false>(false);
 
@@ -178,7 +225,7 @@ const AccordionActions = ({
   const expandIcon = (value: string) => (
     <i
       className={
-        expanded === value ? "tabler-chevron-down" : "tabler-chevron-down"
+        expanded === value ? "tabler-chevron-left" : "tabler-chevron-down"
       }
     />
   );
@@ -188,7 +235,6 @@ const AccordionActions = ({
     handleSubmit,
     watch,
     setValue,
-    getValues,
     formState: { errors },
   } = useForm<MenuFormValues>({
     defaultValues: {
@@ -206,25 +252,9 @@ const AccordionActions = ({
     return () => subscription.unsubscribe();
   }, [watch, setValue]);
 
-  const onSumMenuSubmit = (value: MenuFormValues) => {
-    console.log(value);
-  };
-
-  const addChildMenu = () => {
-    const newMenus = [...menus];
-    const menuIndex = newMenus.findIndex((menu) => menu.id === item.id);
-    newMenus[menuIndex].children.push({
-      item: "New Submenu",
-      url: slugify(`http://localhost:3001/New-Submenu`),
-    });
-    setMenus(newMenus);
-  };
-
-  const removeChildMenu = (childIndex: number) => {
-    const newMenus = [...menus];
-    const menuIndex = newMenus.findIndex((menu) => menu.id === item.id);
-    newMenus[menuIndex].children.splice(childIndex, 1);
-    setMenus(newMenus);
+  const handleDeleteClick = (e: SyntheticEvent) => {
+    e.stopPropagation();
+    removeMenuItem(item.id);
   };
 
   return (
@@ -232,13 +262,15 @@ const AccordionActions = ({
       expanded={expanded === item.name}
       onChange={handleChange(item.name)}>
       <AccordionSummary expandIcon={expandIcon(item.name)} className="w-full">
-        <div className="flex justify-between flex-1">
+        <div className="flex justify-between items-center flex-1">
           <Typography>{watch("item") || item.name}</Typography>
-          <Typography variant="caption">Page</Typography>
+          <IconButton color="error" onClick={handleDeleteClick}>
+            <i className="tabler-trash text-[20px] text-error" />
+          </IconButton>
         </div>
       </AccordionSummary>
       <AccordionDetails>
-        <form onSubmit={handleSubmit(onSumMenuSubmit)}>
+        <form>
           <Grid container spacing={6} paddingTop={6}>
             <Grid item xs={12}>
               <Controller
@@ -295,93 +327,48 @@ const AccordionActions = ({
               </Button>
               <Button
                 variant="outlined"
-                onClick={addChildMenu}
+                onClick={() => {}}
                 className="w-full sm:w-auto">
                 Add Submenu
               </Button>
             </div>
           </Grid>
         </form>
-        {item.children.length > 0 && (
-          <div className="pl-6 mt-5">
-            {item.children.map((child, childIndex) => (
-              <div key={childIndex} className="mb-4">
-                <Typography variant="subtitle1">
-                  {childIndex + 1}. {child.item}
-                </Typography>
-                <Grid container spacing={6}>
-                  <Grid item xs={12}>
-                    <Controller
-                      name={
-                        `children[${childIndex}].item` as keyof MenuFormValues
-                      }
-                      control={control}
-                      defaultValue={child.item}
-                      render={({ field }) => (
-                        <CustomTextField
-                          {...field}
-                          fullWidth
-                          label="Submenu Item"
-                          placeholder="Submenu Item"
-                          onChange={(e) => {
-                            field.onChange(e);
-                            const newMenus = [...menus];
-                            const menuIndex = newMenus.findIndex(
-                              (menu) => menu.id === item.id
-                            );
-                            newMenus[menuIndex].children[childIndex].item =
-                              e.target.value;
-                            newMenus[menuIndex].children[childIndex].url =
-                              slugify(
-                                `http://localhost:3001/${e.target.value}`
-                              );
-                            setMenus(newMenus);
-                          }}
-                          // {...(errors.children && {
-                          //   error: true,
-                          //   helperText: "This field is required.",
-                          // })}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Controller
-                      name={
-                        `children[${childIndex}].url` as keyof MenuFormValues
-                      }
-                      control={control}
-                      defaultValue={child.url}
-                      render={({ field }) => (
-                        <CustomTextField
-                          {...field}
-                          fullWidth
-                          label="Submenu URL"
-                          value={getValues(
-                            `children[${childIndex}].url` as keyof MenuFormValues
-                          )}
-                          placeholder="Submenu URL"
-                          // {...(errors.children && {
-                          //   error: true,
-                          //   helperText: "This field is required.",
-                          // })}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      variant="outlined"
-                      onClick={() => removeChildMenu(childIndex)}
-                      className="w-full sm:w-auto">
-                      Remove Submenu
-                    </Button>
-                  </Grid>
+        {item?.children?.map((subItem, subId) => {
+          return (
+            <form
+              // onSubmit={handleSubmit(onSubmit)}
+              className="p-5 border-t space-y-6">
+              <Grid container spacing={6}>
+                <Grid item xs={12}>
+                  {/* <Controller
+                            name="menu"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field }) => ( */}
+                  <CustomTextField
+                    // {...field}
+                    fullWidth
+                    label={`Menu` + subItem}
+                    placeholder={`Menu` + subItem}
+
+                    // {...(errors.menu && {
+                    //   error: true,
+                    //   helperText: "This field is required.",
+                    // })}
+                  />
+                  {/* )}
+                          /> */}
                 </Grid>
-              </div>
-            ))}
-          </div>
-        )}
+              </Grid>
+              <Grid item xs={12} className="flex justify-end">
+                <Button variant="contained" type="submit">
+                  Add Menu
+                </Button>
+              </Grid>
+            </form>
+          );
+        })}
       </AccordionDetails>
     </Accordion>
   );
