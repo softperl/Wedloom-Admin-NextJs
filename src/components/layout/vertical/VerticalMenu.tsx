@@ -123,9 +123,14 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         </SubMenu>
         <SubMenu label={"Settings"} icon={<i className="tabler-settings" />}>
           <MenuItem href={`/vendorcategory`}>Vendor Category</MenuItem>
-          <MenuItem href={`/city`}>City</MenuItem>
+          <MenuItem href={`/city`}>Add City</MenuItem>
           <MenuItem href={`/checklist`}>User Checklist</MenuItem>
-          <MenuItem href={`/about`}>About</MenuItem>
+          <MenuItem href={`/site-about`}>Site About</MenuItem>
+        </SubMenu>
+        <SubMenu label={"Appearance"} icon={<i className="tabler-grid-dots" />}>
+          <MenuItem href={`/social-media`}>Social Media</MenuItem>
+          <MenuItem href={`/site-menu`}>Site Menu</MenuItem>
+          <MenuItem href={`/site-logo`}>Site Logo</MenuItem>
         </SubMenu>
         <SubMenu
           label={"Terms & Condition"}

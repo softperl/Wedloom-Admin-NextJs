@@ -243,7 +243,11 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
         ),
       }),
       columnHelper.accessor("status", {
-        header: "Status",
+        header: () => (
+          <div className="flex items-center justify-center text-center">
+            Status
+          </div>
+        ),
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <Chip

@@ -47,15 +47,15 @@ const UserListApp = async ({
         <UserListTable
           tableData={[
             {
-              id: "erd764",
-              reportUser: "Shipon",
+              id: "764",
+              reportBy: "Shipon",
               reportEmail: "abc@gmail.com",
               reportVendor: "Avi",
               reportVendorEmail: "avi@gmail.com",
               createdAt: "2023-05-01",
               brand: "samsung",
               reportReason:
-                "lorem text lorem text lorem text lorem text lorem text ",
+                "lorem text lorem text lorem text lorem text lorem text",
               status: "Resolved",
             },
           ]}

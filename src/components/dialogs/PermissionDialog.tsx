@@ -108,7 +108,7 @@ const PermissionDialog = ({
         className="flex flex-col gap-2 text-center sm:pbs-16 sm:pbe-6 sm:pli-16">
         Are you sure?
         <Typography component="span" className="flex flex-col text-center">
-          {data
+          {data?.title
             ? data?.title
             : "Do you really want to delete these records? This process cannot be undone."}
         </Typography>

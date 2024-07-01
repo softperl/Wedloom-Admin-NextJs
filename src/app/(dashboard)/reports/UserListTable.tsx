@@ -67,14 +67,14 @@ declare module "@tanstack/table-core" {
 
 export type UsersType = {
   id?: string;
-  reportUser: string;
+  reportBy: string;
   reportEmail: string;
   reportVendor: string;
   reportVendorEmail: string;
   brand: string;
   reportReason: string;
   createdAt: string;
-  status: "Resolved" | "Pensing";
+  status: "Resolved" | "Penning";
 };
 
 type UsersTypeWithAction = UsersType & {
@@ -186,17 +186,13 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           </div>
         ),
       }),
-      columnHelper.accessor("reportUser", {
-        header: "Report User",
+      columnHelper.accessor("reportBy", {
+        header: "Reported By",
         cell: ({ row }) => (
           <div className="flex items-center gap-4">
-            {getAvatar({
-              avatar: "/",
-              fullName: row.original.reportUser,
-            })}
             <div className="flex flex-col">
               <Typography color="text.primary" className="font-medium">
-                {row.original.reportUser}
+                {row.original.reportBy}
               </Typography>
               <Typography variant="body2">
                 {row.original.reportEmail}
@@ -206,13 +202,9 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
         ),
       }),
       columnHelper.accessor("reportVendor", {
-        header: "Report Vendor",
+        header: "Reported Vendor",
         cell: ({ row }) => (
           <div className="flex items-center gap-4">
-            {getAvatar({
-              avatar: "/",
-              fullName: row.original.reportVendor,
-            })}
             <div className="flex flex-col">
               <Typography color="text.primary" className="font-medium">
                 {row.original.reportVendor}
@@ -232,10 +224,6 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
             {formatDate(row.original.createdAt, "ii MMM Y")}
           </Typography>
         ),
-      }),
-      columnHelper.accessor("reportReason", {
-        header: "Report Reason",
-        cell: ({ row }) => <Typography>{row.original.reportReason}</Typography>,
       }),
 
       columnHelper.accessor("status", {
@@ -258,7 +246,7 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
         cell: ({ row }) => (
           <div className="flex items-center">
             <IconButton>
-              <Link href={"/"} className="flex">
+              <Link href={`/reports/view/${row.original?.id}`} className="flex">
                 <i className="tabler-eye text-[22px] text-textSecondary" />
               </Link>
             </IconButton>
@@ -266,12 +254,15 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
               iconClassName="text-[22px] text-textSecondary"
               options={[
                 {
-                  text: row.original.status === "Block" ? "Unblock" : "Block",
+                  text:
+                    row.original.status === "Resolved"
+                      ? "Mark Pending"
+                      : "Mark Resolved",
                   icon: cn(
                     "text-[22px]",
-                    row.original.status === "Block"
+                    row.original.status === "Resolved"
                       ? "tabler-alert-circle"
-                      : "tabler-alert-circle-off"
+                      : "tabler-checks"
                   ),
                   menuItemProps: {
                     className: "flex items-center gap-2 text-textSecondary",
