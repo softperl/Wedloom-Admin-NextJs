@@ -6,7 +6,9 @@ import CustomTextField from "@core/components/mui/TextField";
 import { Divider } from "@mui/material";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
-import AccordionSummary from "@mui/material/AccordionSummary";
+import MuiAccordionSummary, {
+  AccordionSummaryProps,
+} from "@mui/material/AccordionSummary";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
@@ -15,7 +17,7 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import { nanoid } from "nanoid";
-import { Fragment, SyntheticEvent, useEffect, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
 import {
   DragDropContext,
   Draggable,
@@ -53,6 +55,22 @@ const Accordion = styled(MuiAccordion)<AccordionProps>({
   },
 });
 
+const AccordionSummary = styled(MuiAccordionSummary)<AccordionSummaryProps>(
+  ({ theme }) => ({
+    borderBlockEnd: "0 !important",
+    minHeight: theme.spacing(11.5),
+    transition: "min-height 0.15s ease-in-out",
+    backgroundColor: "var(--mui-palette-customColors-greyLightBg)",
+    "&.Mui-expanded": {
+      minHeight: theme.spacing(11.5),
+      borderBlockEnd: "1px solid var(--mui-palette-divider) !important",
+      "& .MuiAccordionSummary-expandIconWrapper": {
+        transform: "rotate(180deg)",
+      },
+    },
+  })
+);
+
 type FormValues = {
   menu: string;
 };
@@ -84,6 +102,15 @@ const FormValidationBasic = () => {
   });
 
   const onSubmit = (value: FormValues) => {
+    // Check for duplicates
+    const isDuplicate = menuItems.some(
+      (menuItem) => menuItem.name.toLowerCase() === value.menu.toLowerCase()
+    );
+    if (isDuplicate) {
+      alert("Menu item already exists!");
+      return;
+    }
+
     setMenuItems((prevMenuItems) => [
       ...prevMenuItems,
       { id: nanoid(), name: value.menu, children: [] },
@@ -221,7 +248,7 @@ const AccordionActions = ({
   const expandIcon = (value: string) => (
     <i
       className={
-        expanded === value ? "tabler-chevron-left" : "tabler-chevron-down"
+        expanded === value ? "tabler-chevron-down" : "tabler-chevron-down"
       }
     />
   );
@@ -240,7 +267,7 @@ const AccordionActions = ({
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control,
     name: "children",
   });
@@ -268,7 +295,16 @@ const AccordionActions = ({
     });
   };
 
+  const isDuplicate = fields.some(
+    (child, index) => fields.findIndex((c) => c.item === child.item) !== index
+  );
+
   const onSubmit = (data: MenuFormValues) => {
+    if (isDuplicate) {
+      alert("Submenu items must be unique!");
+      return;
+    }
+
     setMenus((prevMenus: MenuItem[]) =>
       prevMenus.map((menu) =>
         menu.id === item.id
@@ -284,12 +320,21 @@ const AccordionActions = ({
     };
 
     const index = findChildIndexById(fields, id);
-    console.log("id", id);
 
     if (index !== -1) {
       item.children = item.children.filter((_, idx) => idx !== index);
       remove(index);
     }
+  };
+
+  const moveSubmenu = (fromIndex: number, toIndex: number) => {
+    move(fromIndex, toIndex);
+  };
+
+  const onSubmenuDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    move(result.source.index, result.destination.index);
   };
 
   return (
@@ -300,9 +345,6 @@ const AccordionActions = ({
         <div className="flex justify-between items-center flex-1">
           <Typography>{watch("item") || item.name}</Typography>
           <div className="">
-            <IconButton color="primary" onClick={addSubmenu}>
-              <i className="tabler-plus text-[20px] text-primary" />
-            </IconButton>
             <IconButton color="error" onClick={handleDeleteClick}>
               <i className="tabler-trash text-[20px] text-error" />
             </IconButton>
@@ -359,89 +401,150 @@ const AccordionActions = ({
               />
             </Grid>
 
-            {fields?.map((field, idx) => {
-              return (
-                <Fragment key={field.id}>
+            {fields.length > 0 && (
+              <Grid container item xs={12}>
+                <Grid container item xs={12} className="border rounded-md">
                   <Grid item xs={12}>
-                    <Divider />
-                  </Grid>
-                  {idx === 0 && (
-                    <>
-                      <CardHeader title="Sub Menu" />
-                      <Grid item xs={12} className="pt-0">
-                        <Divider />
-                      </Grid>
-                    </>
-                  )}
-                  <Grid item xs={12} position={"relative"}>
-                    <Grid container spacing={6}>
-                      <Grid item xs={12} md={6}>
-                        <Controller
-                          name={`children.${idx}.item`}
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field }) => (
-                            <CustomTextField
-                              {...field}
-                              fullWidth
-                              label="Item"
-                              placeholder="Item"
-                              onChange={(e) => {
-                                field.onChange(e);
-                                setValue(
-                                  `children.${idx}.url`,
-                                  slugify(
-                                    `http://localhost:3001/${e.target.value}`
-                                  )
-                                );
-                              }}
-                              {...(errors.children?.[idx]?.item && {
-                                error: true,
-                                helperText: "This field is required.",
-                              })}
-                            />
-                          )}
-                        />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <Controller
-                          name={`children.${idx}.url`}
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field }) => (
-                            <CustomTextField
-                              {...field}
-                              fullWidth
-                              label="URL"
-                              value={watch(`children.${idx}.url`)}
-                              placeholder="URL"
-                              {...(errors.children?.[idx]?.url && {
-                                error: true,
-                                helperText: "This field is required.",
-                              })}
-                            />
-                          )}
-                        />
-                      </Grid>
-                      <Grid
-                        item
-                        className="flex items-center justify-end flex-1 absolute -top-5 right-6">
-                        <IconButton
-                          color="error"
-                          onClick={() => removeSubmenuById(field.id)}>
-                          <i className="tabler-trash text-[20px] text-error" />
-                        </IconButton>
-                      </Grid>
-                      {idx === fields.length - 1 && (
-                        <Grid item xs={12}>
-                          <Divider />
-                        </Grid>
-                      )}
+                    <Grid
+                      xs={12}
+                      sx={{
+                        backgroundColor:
+                          "var(--mui-palette-customColors-greyLightBg)",
+                        color: "var(--mui-palette-customColors-greyDark)",
+                        fontSize: "1rem",
+                        fontWeight: "500",
+                        padding: "1rem",
+                        borderRadius: "0.25rem",
+                      }}
+                      className="flex items-center justify-between">
+                      <p>Sub Menu</p>
                     </Grid>
                   </Grid>
-                </Fragment>
-              );
-            })}
+                  <Grid item xs={12} className="mb-4">
+                    <Divider />
+                  </Grid>
+                  <DragDropContext onDragEnd={onSubmenuDragEnd}>
+                    <Droppable droppableId={`submenus-${item.id}`}>
+                      {(provided) => {
+                        return (
+                          <Grid
+                            xs={12}
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}>
+                            {fields?.map((field, idx) => {
+                              return (
+                                <Draggable
+                                  key={field.id}
+                                  draggableId={field.id}
+                                  index={idx}>
+                                  {(provided) => (
+                                    <Grid
+                                      container
+                                      item
+                                      spacing={6}
+                                      xs={12}
+                                      padding={4}
+                                      position={"relative"}
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}>
+                                      <Grid item xs={12} md={6}>
+                                        <Controller
+                                          name={`children.${idx}.item`}
+                                          control={control}
+                                          rules={{ required: true }}
+                                          render={({ field }) => (
+                                            <CustomTextField
+                                              {...field}
+                                              fullWidth
+                                              label="Item"
+                                              placeholder="Item"
+                                              onChange={(e) => {
+                                                field.onChange(e);
+                                                setValue(
+                                                  `children.${idx}.url`,
+                                                  slugify(
+                                                    `http://localhost:3001/${e.target.value}`
+                                                  )
+                                                );
+                                              }}
+                                              {...(errors.children?.[idx]
+                                                ?.item && {
+                                                error: true,
+                                                helperText:
+                                                  "This field is required.",
+                                              })}
+                                            />
+                                          )}
+                                        />
+                                      </Grid>
+                                      <Grid item xs={12} md={6}>
+                                        <Controller
+                                          name={`children.${idx}.url`}
+                                          control={control}
+                                          rules={{ required: true }}
+                                          render={({ field }) => (
+                                            <CustomTextField
+                                              {...field}
+                                              fullWidth
+                                              label="URL"
+                                              value={watch(
+                                                `children.${idx}.url`
+                                              )}
+                                              placeholder="URL"
+                                              {...(errors.children?.[idx]
+                                                ?.url && {
+                                                error: true,
+                                                helperText:
+                                                  "This field is required.",
+                                              })}
+                                            />
+                                          )}
+                                        />
+                                      </Grid>
+                                      <div className="flex items-center justify-end flex-1 absolute top-5 right-4">
+                                        <IconButton
+                                          color="primary"
+                                          disabled={idx === fields.length - 1}
+                                          onClick={() =>
+                                            moveSubmenu(idx, idx + 1)
+                                          }>
+                                          <i className="tabler-arrow-down text-[20px] text-primary" />
+                                        </IconButton>
+                                        <IconButton
+                                          color="primary"
+                                          disabled={idx === 0}
+                                          onClick={() =>
+                                            moveSubmenu(idx, idx - 1)
+                                          }>
+                                          <i className="tabler-arrow-up text-[20px] text-primary" />
+                                        </IconButton>
+
+                                        <IconButton
+                                          color="error"
+                                          onClick={() =>
+                                            removeSubmenuById(field.id)
+                                          }>
+                                          <i className="tabler-trash text-[20px] text-error" />
+                                        </IconButton>
+                                      </div>
+                                    </Grid>
+                                  )}
+                                </Draggable>
+                              );
+                            })}
+                            {provided.placeholder}
+                          </Grid>
+                        );
+                      }}
+                    </Droppable>
+                  </DragDropContext>
+                </Grid>
+              </Grid>
+            )}
+            <Grid item xs={12}>
+              <Divider />
+            </Grid>
             <Grid item xs={12} className="flex justify-end gap-2">
               <Button variant="outlined" type="button" onClick={addSubmenu}>
                 Add New
