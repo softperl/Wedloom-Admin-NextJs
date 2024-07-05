@@ -1,34 +1,30 @@
-// MUI Imports
-import Grid from "@mui/material/Grid";
-
-// Components Imports
-import EarningReports from "@views/dashboards/analytics/EarningReports";
-
-// Server Action Imports
-import { getServerMode } from "@core/utils/serverHelpers";
-import UsersSlider from "./UsersSlider";
-import VendorsSlider from "./VendorsSlider";
+import UserListCards from "../users/UserListCards";
+import BlogListCards from "../blogs/UserListCards";
+import QuestionListCards from "../question/UserListCards";
+import VendorListCards from "../vendors/UserListCards";
+import ReportsListCards from "../reports/UserListCards";
+import MembershipListCards from "../membership/UserListCards";
+import PlanListCards from "../membership/plan/UserListCards";
+import MarketplaceListCards from "../cards/marketplace/UserListCards";
+import CardsListCards from "../cards/UserListCards";
+import CardsFontsListCards from "../cards/fonts/UserListCards";
+import ContactListCards from "../contact/UserListCards";
 
 const DashboardAnalytics = async () => {
-  // Vars
-
-  const serverMode = getServerMode();
-
   return (
-    <Grid container spacing={6}>
-      <Grid item xs={12} lg={6}>
-        <UsersSlider />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <EarningReports serverMode={serverMode} />
-      </Grid>
-      <Grid item xs={12} lg={6}>
-        <VendorsSlider />
-      </Grid>
-      {/* <Grid item xs={12} lg={6}>
-        <WebsiteAnalyticsSlider />
-      </Grid> */}
-    </Grid>
+    <div className="flex flex-col gap-6">
+      <BlogListCards />
+      <QuestionListCards />
+      <UserListCards />
+      <VendorListCards />
+      <ReportsListCards />
+      <MembershipListCards />
+      <PlanListCards />
+      <MarketplaceListCards />
+      <CardsListCards />
+      <CardsFontsListCards />
+      <ContactListCards />
+    </div>
   );
 };
 

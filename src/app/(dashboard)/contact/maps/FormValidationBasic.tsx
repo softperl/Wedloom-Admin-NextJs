@@ -81,7 +81,7 @@ const FormValidationBasic = () => {
                   referrerPolicy="no-referrer-when-downgrade"
                   className="rounded-md"></iframe>
               ) : (
-                <div className="py-28 bg-gray-100 rounded-md flex items-center justify-center">
+                <div className="py-28 bg-[var(--mui-palette-background-paper)] border border-[var(--mui-palette-customColors-inputBorder)] rounded-md flex items-center justify-center">
                   <p>Please add embed link</p>
                 </div>
               )}
