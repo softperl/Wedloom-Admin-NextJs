@@ -27,7 +27,7 @@ import SEOKeyword from "./SEOKeyword";
 import { useEffect, useState } from "react";
 import { handelError, slugify } from "@/lib/utils";
 import { formatDate } from "date-fns/format";
-import { newPost } from "@/lib/api";
+import { newAbout, newPost } from "@/lib/api";
 
 type FormValues = {
   image: string;
@@ -76,17 +76,17 @@ const FormValidationBasic = ({ categories }: any) => {
 
   const onSubmit = async (value: any) => {
     try {
-      await newPost({
-        siteName: value.siteName,
+      await newAbout({
+        name: value.siteName,
+        email: "XXXXXXXXXXXXXXX",
+        phone: "XXXXXXXXXXXXXXX",
+        tagLine: "xxxxxxx",
+        seoTitle: "xxxxxxx",
         description: value.shortDescription,
         content: value.description,
-        categoryId: value.category,
-        keywords: value.seokeywords,
-        status: value.status,
-        tags: value.tags,
+        seoKeyWords: value.seokeywords,
       });
-      toast.success("Post added successfully!");
-      router.push("/blogs");
+      toast.success("About added successfully!");
     } catch (error) {
       handelError(error);
     }
@@ -346,7 +346,8 @@ const FormValidationBasic = ({ categories }: any) => {
                 variant="tonal"
                 color="secondary"
                 type="button"
-                onClick={() => router.back()}>
+                onClick={() => router.back()}
+              >
                 Cancel
               </Button>
             </Grid>

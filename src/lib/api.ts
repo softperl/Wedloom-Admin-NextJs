@@ -52,6 +52,8 @@ export const deletePost = (id: string) => API.delete(`/blog/post/delete/${id}`);
 
 //Site
 export const getTerms = () => API.get("/site/terms");
+export const newAbout = (formData: any) =>
+  API.post("/site/about/new", formData);
 export const newTerms = (formData: any) =>
   API.post("/site/terms/new", formData);
 export const deleteTerms = () => API.delete("/site/terms/delete");
