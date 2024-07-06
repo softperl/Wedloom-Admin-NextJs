@@ -27,33 +27,23 @@ import SEOKeyword from "./SEOKeyword";
 import { useEffect, useState } from "react";
 import { handelError, slugify } from "@/lib/utils";
 import { formatDate } from "date-fns/format";
-import { newAbout, newPost } from "@/lib/api";
+import { newAbout } from "@/lib/api";
 
 type FormValues = {
-  image: string;
+  email: string;
+  phone: string;
   siteName: string;
+  tagLine: string;
   shortDescription: string;
-  description: string;
-  category: string;
+  seoTitle: string;
   seokeywords: string[];
-  status: string;
-  author: string;
-  tags: string[];
 };
 
-const FormValidationBasic = ({ categories }: any) => {
-  // State to hold the full URL
+const FormValidationBasic = ({ aboutData }: any) => {
   const [mainDomain, setMainDomain] = useState<string>("");
   // Hooks
-  const {
-    fileInputRef,
-    imageSrc,
-    selectedFile,
-    handleFileChange,
-    handleRemove,
-  } = useImagePreview();
+
   const router = useRouter();
-  const pathname = usePathname();
 
   const {
     control,
@@ -63,27 +53,27 @@ const FormValidationBasic = ({ categories }: any) => {
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      image: undefined,
-      siteName: "",
-      shortDescription: "",
-      description: "",
-      seokeywords: [],
-      category: undefined,
-      status: "Published",
-      author: "Admin",
+      email: aboutData.email || undefined,
+      siteName: aboutData.name || undefined,
+      shortDescription: aboutData.description || undefined,
+      seokeywords: aboutData.seoKeyWords || [],
+      seoTitle: aboutData.seoTitle || undefined,
+      tagLine: aboutData.tagLine || undefined,
+      phone: aboutData.phone || undefined,
     },
   });
 
   const onSubmit = async (value: any) => {
     try {
       await newAbout({
+        ...(aboutData && { id: aboutData.id }),
         name: value.siteName,
-        email: "XXXXXXXXXXXXXXX",
-        phone: "XXXXXXXXXXXXXXX",
-        tagLine: "xxxxxxx",
-        seoTitle: "xxxxxxx",
+        email: value.email,
+        phone: value.phone,
+        tagLine: value.tagLine,
+        seoTitle: value.seoTitle,
         description: value.shortDescription,
-        content: value.description,
+        content: "gg",
         seoKeyWords: value.seokeywords,
       });
       toast.success("About added successfully!");
@@ -104,8 +94,6 @@ const FormValidationBasic = ({ categories }: any) => {
 
   const shortDes = watch("shortDescription");
   const seokeywordsArray = watch("seokeywords");
-
-  console.log("seokeywordsArray", seokeywordsArray);
 
   const seoDescription = () => {
     if (
@@ -162,7 +150,7 @@ const FormValidationBasic = ({ categories }: any) => {
               </Grid>
               <Grid item xs={6}>
                 <Controller
-                  name="siteName"
+                  name="tagLine"
                   control={control}
                   rules={{ required: true }}
                   render={({ field }) => {
@@ -171,7 +159,7 @@ const FormValidationBasic = ({ categories }: any) => {
                         {...field}
                         fullWidth
                         label="Tag Line"
-                        {...(errors.siteName && {
+                        {...(errors.tagLine && {
                           error: true,
                           helperText: "This field is required.",
                         })}
@@ -184,7 +172,7 @@ const FormValidationBasic = ({ categories }: any) => {
 
             <Grid item xs={6}>
               <Controller
-                name="siteName"
+                name="email"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => {
@@ -193,7 +181,7 @@ const FormValidationBasic = ({ categories }: any) => {
                       {...field}
                       fullWidth
                       label="Email"
-                      {...(errors.siteName && {
+                      {...(errors.email && {
                         error: true,
                         helperText: "This field is required.",
                       })}
@@ -205,7 +193,7 @@ const FormValidationBasic = ({ categories }: any) => {
 
             <Grid item xs={6}>
               <Controller
-                name="siteName"
+                name="phone"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => {
@@ -214,7 +202,7 @@ const FormValidationBasic = ({ categories }: any) => {
                       {...field}
                       fullWidth
                       label="Phone Number"
-                      {...(errors.siteName && {
+                      {...(errors.phone && {
                         error: true,
                         helperText: "This field is required.",
                       })}
@@ -231,7 +219,7 @@ const FormValidationBasic = ({ categories }: any) => {
             <CardHeader title="Meta Preview" className="pb-0" />
             <Grid item xs={12}>
               <Controller
-                name="siteName"
+                name="seoTitle"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => {
@@ -249,7 +237,7 @@ const FormValidationBasic = ({ categories }: any) => {
                         fullWidth
                         label="Title"
                         onChange={handleChange}
-                        {...(errors.siteName && {
+                        {...(errors.seoTitle && {
                           error: true,
                           helperText: "This field is required.",
                         })}

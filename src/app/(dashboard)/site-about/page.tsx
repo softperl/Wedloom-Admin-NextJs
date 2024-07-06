@@ -4,18 +4,18 @@ import FormValidationBasic from "./FormValidationBasic";
 import { fetchFn } from "@/lib/servet-utils";
 
 export default async function page() {
-  let data = null;
+  let aboutData = null;
 
   try {
-    data = await fetchFn(`/blog/category/get-all`, {
+    const data = await fetchFn(`/site/about`, {
       method: "GET",
       next: {
         revalidate: 0,
-        tags: ["categories"],
       },
     });
+    aboutData = data.about;
   } catch (error) {
     console.log(error);
   }
-  return <FormValidationBasic categories={data?.categories} />;
+  return <FormValidationBasic aboutData={aboutData} />;
 }
