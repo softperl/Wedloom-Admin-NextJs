@@ -16,6 +16,8 @@ import { Controller, useForm } from "react-hook-form";
 
 // Components Imports
 import CustomTextField from "@core/components/mui/TextField";
+import { newSocialLinks } from "@/lib/api";
+import toast from "react-hot-toast";
 
 // Styled Component Imports
 
@@ -36,7 +38,7 @@ type FormValues = {
   Threads: string;
 };
 
-const FormValidationBasic = () => {
+const FormValidationBasic = ({ socialLinks }: any) => {
   const router = useRouter();
 
   // Hooks
@@ -47,25 +49,33 @@ const FormValidationBasic = () => {
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      Facebook: undefined,
-      Twitter: undefined,
-      Pinterest: undefined,
-      Instagram: undefined,
-      Youtube: undefined,
-      Linkedin: undefined,
-      TikTok: undefined,
-      Reddit: undefined,
-      Discord: undefined,
-      WhatsApp: undefined,
-      Telegram: undefined,
-      Quora: undefined,
-      Tumblr: undefined,
-      Threads: undefined,
+      Facebook: socialLinks?.Facebook || undefined,
+      Twitter: socialLinks?.Twitter || undefined,
+      Pinterest: socialLinks?.Pinterest || undefined,
+      Instagram: socialLinks?.Instagram || undefined,
+      Youtube: socialLinks?.Youtube || undefined,
+      Linkedin: socialLinks?.Linkedin || undefined,
+      TikTok: socialLinks?.TikTok || undefined,
+      Reddit: socialLinks?.Reddit || undefined,
+      Discord: socialLinks?.Discord || undefined,
+      WhatsApp: socialLinks?.WhatsApp || undefined,
+      Telegram: socialLinks?.Telegram || undefined,
+      Quora: socialLinks?.Quora || undefined,
+      Tumblr: socialLinks?.Tumblr || undefined,
+      Threads: socialLinks?.Threads || undefined,
     },
   });
 
   const onSubmit = async (value: any) => {
-    console.log(value);
+    try {
+      await newSocialLinks({
+        ...value,
+        ...(socialLinks && { id: socialLinks.id }),
+      });
+      toast.success("Social Links Added Successfully");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -349,7 +359,8 @@ const FormValidationBasic = () => {
                 variant="tonal"
                 color="secondary"
                 type="button"
-                onClick={() => router.back()}>
+                onClick={() => router.back()}
+              >
                 Cancel
               </Button>
             </Grid>

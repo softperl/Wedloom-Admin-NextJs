@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteMenu, newMenu } from "@/lib/api";
 // MUI Imports
 import useSiteMenu from "@/lib/hooks/useSiteMenu";
 import { cn, slugify } from "@/lib/utils";
@@ -99,6 +100,7 @@ export type MenuFormValues = {
 type MenuItem = {
   id: string;
   name: string;
+  url: string;
   children: MenuFormValues[];
 };
 
@@ -158,10 +160,23 @@ const Position = () => {
   );
 };
 
-const FormValidationBasic = () => {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+const FormValidationBasic = ({ menus }: any) => {
   const { menuPosition } = useSiteMenu();
-  console.log(menuItems);
+  const formatedMenus = menus?.map((menu: any) => {
+    return {
+      id: menu.id,
+      name: menu.title,
+      url: menu.href,
+      children: menu.subMenus.map((m: any) => {
+        return {
+          item: m.title,
+          url: m.href,
+        };
+      }),
+    };
+  });
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(formatedMenus || []);
+  // console.log(menuItems);
   const {
     control,
     reset,
@@ -185,8 +200,14 @@ const FormValidationBasic = () => {
 
     setMenuItems((prevMenuItems) => [
       ...prevMenuItems,
-      { id: nanoid(), name: value.menu, children: [] },
+      {
+        id: nanoid(),
+        name: value.menu,
+        url: slugify(value.menu),
+        children: [],
+      },
     ]);
+
     reset();
   };
 
@@ -227,11 +248,11 @@ const FormValidationBasic = () => {
                       )}
                     />
                   </Grid>
-                </Grid>
-                <Grid item xs={12} className="flex justify-end">
-                  <Button variant="contained" type="submit">
-                    Add Menu
-                  </Button>
+                  <Grid item xs={12} className="flex justify-end">
+                    <Button variant="contained" type="submit">
+                      Add Menu
+                    </Button>
+                  </Grid>
                 </Grid>
               </form>
             )}
@@ -337,7 +358,7 @@ const AccordionActions = ({
   } = useForm<MenuFormValues>({
     defaultValues: {
       item: item.name,
-      url: slugify(`http://localhost:3001/${item.name}`),
+      url: slugify(`/${item.name}`),
       children: item.children,
     },
   });
@@ -350,15 +371,16 @@ const AccordionActions = ({
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
       if (name === "item") {
-        setValue("url", slugify(`http://localhost:3001/${value.item}`));
+        setValue("url", slugify(`/${value.item}`));
       }
     });
     return () => subscription.unsubscribe();
   }, [watch, setValue]);
 
-  const handleDeleteClick = (e: SyntheticEvent) => {
+  const handleDeleteClick = async (e: SyntheticEvent) => {
     e.stopPropagation();
     removeMenuItem(item.id);
+    await deleteMenu(item.id);
   };
 
   const addSubmenu = (e: SyntheticEvent) => {
@@ -366,7 +388,7 @@ const AccordionActions = ({
     append({
       id: nanoid(), // Generate ID once when adding
       item: "",
-      url: slugify(`http://localhost:3001/${item?.children}`),
+      url: slugify(`/${item?.children}`),
     });
   };
 
@@ -374,7 +396,7 @@ const AccordionActions = ({
     (child, index) => fields.findIndex((c) => c.item === child.item) !== index
   );
 
-  const onSubmit = (data: MenuFormValues) => {
+  const onSubmit = async (data: MenuFormValues) => {
     if (isDuplicate) {
       alert("Submenu items must be unique!");
       return;
@@ -387,6 +409,24 @@ const AccordionActions = ({
           : menu
       )
     );
+    const parentMenu = {
+      title: item.name,
+      href: item.url,
+    };
+    const submenus = data.children.map((child) => ({
+      title: child.item,
+      href: child.url,
+    }));
+    console.log(parentMenu);
+    try {
+      await newMenu({
+        title: parentMenu.title,
+        href: parentMenu.href,
+        subMenus: submenus,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const removeSubmenuById = (id: string) => {
@@ -442,10 +482,7 @@ const AccordionActions = ({
                     placeholder="Item"
                     onChange={(e) => {
                       field.onChange(e);
-                      setValue(
-                        "url",
-                        slugify(`http://localhost:3001/${e.target.value}`)
-                      );
+                      setValue("url", slugify(`/${e.target.value}`));
                     }}
                     {...(errors.item && {
                       error: true,
@@ -538,9 +575,7 @@ const AccordionActions = ({
                                                 field.onChange(e);
                                                 setValue(
                                                   `children.${idx}.url`,
-                                                  slugify(
-                                                    `http://localhost:3001/${e.target.value}`
-                                                  )
+                                                  slugify(`/${e.target.value}`)
                                                 );
                                               }}
                                               {...(errors.children?.[idx]
