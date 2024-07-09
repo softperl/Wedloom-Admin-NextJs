@@ -1,9 +1,10 @@
 "use client";
 
 // MUI Imports
+import useSiteMenu from "@/lib/hooks/useSiteMenu";
 import { cn, slugify } from "@/lib/utils";
 import CustomTextField from "@core/components/mui/TextField";
-import { Divider } from "@mui/material";
+import { Divider, FormHelperText } from "@mui/material";
 import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import MuiAccordionSummary, {
@@ -14,6 +15,7 @@ import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
+import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import { nanoid } from "nanoid";
@@ -71,11 +73,24 @@ const AccordionSummary = styled(MuiAccordionSummary)<AccordionSummaryProps>(
   })
 );
 
+const MenuPosition = [
+  {
+    value: "Primary Menu",
+  },
+  {
+    value: "Footer Menu",
+  },
+];
+
+type MenuPositionValues = {
+  position: string;
+};
+
 type FormValues = {
   menu: string;
 };
 
-type MenuFormValues = {
+export type MenuFormValues = {
   item: string;
   url: string;
   children: { id: string; item: string; url: string }[];
@@ -87,8 +102,65 @@ type MenuItem = {
   children: MenuFormValues[];
 };
 
+const Position = () => {
+  const { menuPosition, setMenuPosition } = useSiteMenu();
+  const {
+    control,
+    reset,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<MenuPositionValues>({
+    defaultValues: {
+      position: "",
+    },
+  });
+
+  const onSubmit = (value: MenuPositionValues) => {
+    setMenuPosition(value.position);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="p-5 border-t space-y-6">
+      <Grid item xs={12}>
+        <Controller
+          name="position"
+          control={control}
+          rules={{ required: true }}
+          render={({ field }) => (
+            <CustomTextField
+              select
+              fullWidth
+              label="Menu Position"
+              {...field}
+              disabled={menuPosition.length > 0}
+              error={Boolean(errors.position)}>
+              <MenuItem value="">Select Menu Type</MenuItem>
+              {MenuPosition.map((position) => (
+                <MenuItem key={position.value} value={position.value}>
+                  {position.value}
+                </MenuItem>
+              ))}
+            </CustomTextField>
+          )}
+        />
+        {errors.position && (
+          <FormHelperText error>This field is required.</FormHelperText>
+        )}
+      </Grid>
+      {!menuPosition && (
+        <Grid item xs={12} className="flex justify-end">
+          <Button variant="contained" type="submit">
+            Add Menu
+          </Button>
+        </Grid>
+      )}
+    </form>
+  );
+};
+
 const FormValidationBasic = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const { menuPosition } = useSiteMenu();
   console.log(menuItems);
   const {
     control,
@@ -127,39 +199,42 @@ const FormValidationBasic = () => {
   return (
     <>
       <Grid container spacing={6}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} className="flex flex-col gap-6">
           <Card>
             <CardHeader title="Add Menu Items" />
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="p-5 border-t space-y-6">
-              <Grid container spacing={6}>
-                <Grid item xs={12}>
-                  <Controller
-                    name="menu"
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field }) => (
-                      <CustomTextField
-                        {...field}
-                        fullWidth
-                        label="Menu"
-                        placeholder="Menu"
-                        {...(errors.menu && {
-                          error: true,
-                          helperText: "This field is required.",
-                        })}
-                      />
-                    )}
-                  />
+            <Position />
+            {menuPosition && (
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="p-5 border-t space-y-6">
+                <Grid container spacing={6}>
+                  <Grid item xs={12}>
+                    <Controller
+                      name="menu"
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <CustomTextField
+                          {...field}
+                          fullWidth
+                          label="Menu"
+                          placeholder="Menu"
+                          {...(errors.menu && {
+                            error: true,
+                            helperText: "This field is required.",
+                          })}
+                        />
+                      )}
+                    />
+                  </Grid>
                 </Grid>
-              </Grid>
-              <Grid item xs={12} className="flex justify-end">
-                <Button variant="contained" type="submit">
-                  Add Menu
-                </Button>
-              </Grid>
-            </form>
+                <Grid item xs={12} className="flex justify-end">
+                  <Button variant="contained" type="submit">
+                    Add Menu
+                  </Button>
+                </Grid>
+              </form>
+            )}
           </Card>
         </Grid>
         <Grid item xs={12} md={8}>
