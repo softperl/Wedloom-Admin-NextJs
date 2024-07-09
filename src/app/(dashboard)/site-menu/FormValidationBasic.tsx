@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteMenu, newMenu } from "@/lib/api";
 // MUI Imports
 import { cn, slugify } from "@/lib/utils";
 import CustomTextField from "@core/components/mui/TextField";
@@ -84,12 +85,26 @@ type MenuFormValues = {
 type MenuItem = {
   id: string;
   name: string;
+  url: string;
   children: MenuFormValues[];
 };
 
-const FormValidationBasic = () => {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  console.log(menuItems);
+const FormValidationBasic = ({ menus }: any) => {
+  const formatedMenus = menus.map((menu: any) => {
+    return {
+      id: menu.id,
+      name: menu.title,
+      url: menu.href,
+      children: menu.subMenus.map((m: any) => {
+        return {
+          item: m.title,
+          url: m.href,
+        };
+      }),
+    };
+  });
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(formatedMenus || []);
+  // console.log(menuItems);
   const {
     control,
     reset,
@@ -113,8 +128,14 @@ const FormValidationBasic = () => {
 
     setMenuItems((prevMenuItems) => [
       ...prevMenuItems,
-      { id: nanoid(), name: value.menu, children: [] },
+      {
+        id: nanoid(),
+        name: value.menu,
+        url: slugify(value.menu),
+        children: [],
+      },
     ]);
+
     reset();
   };
 
@@ -132,7 +153,8 @@ const FormValidationBasic = () => {
             <CardHeader title="Add Menu Items" />
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className="p-5 border-t space-y-6">
+              className="p-5 border-t space-y-6"
+            >
               <Grid container spacing={6}>
                 <Grid item xs={12}>
                   <Controller
@@ -211,7 +233,8 @@ const MenuManagement = ({
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    className={cn(index !== 0 && "mt-4")}>
+                    className={cn(index !== 0 && "mt-4")}
+                  >
                     <AccordionActions
                       item={menu}
                       setMenus={setMenus}
@@ -262,7 +285,7 @@ const AccordionActions = ({
   } = useForm<MenuFormValues>({
     defaultValues: {
       item: item.name,
-      url: slugify(`http://localhost:3001/${item.name}`),
+      url: slugify(`/${item.name}`),
       children: item.children,
     },
   });
@@ -275,15 +298,16 @@ const AccordionActions = ({
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
       if (name === "item") {
-        setValue("url", slugify(`http://localhost:3001/${value.item}`));
+        setValue("url", slugify(`/${value.item}`));
       }
     });
     return () => subscription.unsubscribe();
   }, [watch, setValue]);
 
-  const handleDeleteClick = (e: SyntheticEvent) => {
+  const handleDeleteClick = async (e: SyntheticEvent) => {
     e.stopPropagation();
     removeMenuItem(item.id);
+    await deleteMenu(item.id);
   };
 
   const addSubmenu = (e: SyntheticEvent) => {
@@ -291,7 +315,7 @@ const AccordionActions = ({
     append({
       id: nanoid(), // Generate ID once when adding
       item: "",
-      url: slugify(`http://localhost:3001/${item?.children}`),
+      url: slugify(`/${item?.children}`),
     });
   };
 
@@ -299,7 +323,7 @@ const AccordionActions = ({
     (child, index) => fields.findIndex((c) => c.item === child.item) !== index
   );
 
-  const onSubmit = (data: MenuFormValues) => {
+  const onSubmit = async (data: MenuFormValues) => {
     if (isDuplicate) {
       alert("Submenu items must be unique!");
       return;
@@ -312,6 +336,24 @@ const AccordionActions = ({
           : menu
       )
     );
+    const parentMenu = {
+      title: item.name,
+      href: item.url,
+    };
+    const submenus = data.children.map((child) => ({
+      title: child.item,
+      href: child.url,
+    }));
+    console.log(parentMenu);
+    try {
+      await newMenu({
+        title: parentMenu.title,
+        href: parentMenu.href,
+        subMenus: submenus,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const removeSubmenuById = (id: string) => {
@@ -340,7 +382,8 @@ const AccordionActions = ({
   return (
     <Accordion
       expanded={expanded === item.name}
-      onChange={handleChange(item.name)}>
+      onChange={handleChange(item.name)}
+    >
       <AccordionSummary expandIcon={expandIcon(item.name)} className="w-full">
         <div className="flex justify-between items-center flex-1">
           <Typography>{watch("item") || item.name}</Typography>
@@ -367,10 +410,7 @@ const AccordionActions = ({
                     placeholder="Item"
                     onChange={(e) => {
                       field.onChange(e);
-                      setValue(
-                        "url",
-                        slugify(`http://localhost:3001/${e.target.value}`)
-                      );
+                      setValue("url", slugify(`/${e.target.value}`));
                     }}
                     {...(errors.item && {
                       error: true,
@@ -416,7 +456,8 @@ const AccordionActions = ({
                         padding: "1rem",
                         borderRadius: "0.25rem",
                       }}
-                      className="flex items-center justify-between">
+                      className="flex items-center justify-between"
+                    >
                       <p>Sub Menu</p>
                     </Grid>
                   </Grid>
@@ -430,13 +471,15 @@ const AccordionActions = ({
                           <Grid
                             xs={12}
                             ref={provided.innerRef}
-                            {...provided.droppableProps}>
+                            {...provided.droppableProps}
+                          >
                             {fields?.map((field, idx) => {
                               return (
                                 <Draggable
                                   key={field.id}
                                   draggableId={field.id}
-                                  index={idx}>
+                                  index={idx}
+                                >
                                   {(provided) => (
                                     <Grid
                                       container
@@ -447,7 +490,8 @@ const AccordionActions = ({
                                       position={"relative"}
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
-                                      {...provided.dragHandleProps}>
+                                      {...provided.dragHandleProps}
+                                    >
                                       <Grid item xs={12} md={6}>
                                         <Controller
                                           name={`children.${idx}.item`}
@@ -463,9 +507,7 @@ const AccordionActions = ({
                                                 field.onChange(e);
                                                 setValue(
                                                   `children.${idx}.url`,
-                                                  slugify(
-                                                    `http://localhost:3001/${e.target.value}`
-                                                  )
+                                                  slugify(`/${e.target.value}`)
                                                 );
                                               }}
                                               {...(errors.children?.[idx]
@@ -508,7 +550,8 @@ const AccordionActions = ({
                                           disabled={idx === fields.length - 1}
                                           onClick={() =>
                                             moveSubmenu(idx, idx + 1)
-                                          }>
+                                          }
+                                        >
                                           <i className="tabler-arrow-down text-[20px] text-primary" />
                                         </IconButton>
                                         <IconButton
@@ -516,7 +559,8 @@ const AccordionActions = ({
                                           disabled={idx === 0}
                                           onClick={() =>
                                             moveSubmenu(idx, idx - 1)
-                                          }>
+                                          }
+                                        >
                                           <i className="tabler-arrow-up text-[20px] text-primary" />
                                         </IconButton>
 
@@ -524,7 +568,8 @@ const AccordionActions = ({
                                           color="error"
                                           onClick={() =>
                                             removeSubmenuById(field.id)
-                                          }>
+                                          }
+                                        >
                                           <i className="tabler-trash text-[20px] text-error" />
                                         </IconButton>
                                       </div>

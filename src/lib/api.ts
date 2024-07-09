@@ -67,3 +67,6 @@ export const getRefund = () => API.get("/site/refund");
 export const newRefund = (formData: any) =>
   API.post("/site/refund/new", formData);
 export const deleteRefund = () => API.delete("/site/refund/delete");
+export const newMenu = (formData: any) => API.post("/site/menu/new", formData);
+export const getMenus = () => API.get("/site/menus");
+export const deleteMenu = (id: string) => API.delete(`/site/menu/delete/${id}`);
