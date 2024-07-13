@@ -1,13 +1,17 @@
+import { MenuItem } from "@/app/(dashboard)/header-menu/menuForm";
 import { create } from "zustand";
 
 interface Store {
-  menuPosition: string;
-  setMenuPosition: (val: string) => void;
+  menuItems: MenuItem[];
+  setMenuItems: (val: MenuItem[] | ((prev: MenuItem[]) => MenuItem[])) => void;
 }
 
 const useSiteMenu = create<Store>((set) => ({
-  menuPosition: "",
-  setMenuPosition: (val) => set({ menuPosition: val }),
+  menuItems: [],
+  setMenuItems: (val) =>
+    set((state) => ({
+      menuItems: typeof val === "function" ? val(state.menuItems) : val,
+    })),
 }));
 
 export default useSiteMenu;

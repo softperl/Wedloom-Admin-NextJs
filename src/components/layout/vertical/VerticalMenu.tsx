@@ -129,7 +129,8 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         </SubMenu>
         <SubMenu label={"Appearance"} icon={<i className="tabler-grid-dots" />}>
           <MenuItem href={`/social-media`}>Social Media</MenuItem>
-          <MenuItem href={`/site-menu`}>Site Menu</MenuItem>
+          <MenuItem href={`/header-menu`}>Header Menu</MenuItem>
+          <MenuItem href={`/footer-menu`}>Footer Menu</MenuItem>
           <MenuItem href={`/site-logo`}>Site Logo</MenuItem>
         </SubMenu>
         <SubMenu

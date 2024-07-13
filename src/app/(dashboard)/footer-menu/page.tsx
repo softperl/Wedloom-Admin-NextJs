@@ -16,5 +16,5 @@ export default async function page() {
   } catch (error) {
     console.log(error);
   }
-  return <FormValidationBasic menus={menus} />;
+  return <FormValidationBasic />;
 }
