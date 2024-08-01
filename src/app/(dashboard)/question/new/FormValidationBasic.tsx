@@ -8,7 +8,7 @@ import CardHeader from "@mui/material/CardHeader";
 import Grid from "@mui/material/Grid";
 
 // Third-party Imports
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 // Components Imports
@@ -16,6 +16,7 @@ import CustomTextField from "@core/components/mui/TextField";
 import FormHelperText from "@mui/material/FormHelperText";
 import MenuItem from "@mui/material/MenuItem";
 import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 type FormValues = {
   question: string;
@@ -24,6 +25,7 @@ type FormValues = {
   labelName: string;
   inputType: string;
   showLabel: boolean;
+  options: { value: string }[];
 };
 
 const FormValidationBasic = () => {
@@ -45,9 +47,14 @@ const FormValidationBasic = () => {
       labelName: "",
       inputType: "Text + Number",
       showLabel: true,
+      options: [{ value: "" }],
     },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "options",
+  });
   const onSubmit = (value: any) => {
     console.log(value);
     toast.success("Form Submitted");
@@ -57,7 +64,7 @@ const FormValidationBasic = () => {
     <Card>
       <CardHeader title="Add New Question" />
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <Grid container spacing={6}>
             <Grid item xs={12}>
               <Controller
@@ -195,6 +202,59 @@ const FormValidationBasic = () => {
                 <FormHelperText error>This field is required.</FormHelperText>
               )}
             </Grid>
+          </Grid>
+          <Grid container spacing={6}>
+            {(watch("questionType").includes("Multiple Choice") ||
+              watch("questionType").includes("Radio")) &&
+              fields?.map((item, i) => {
+                return (
+                  <Grid key={item?.id} item xs={12} className="flex gap-2">
+                    <Controller
+                      name={`options.${i}.value`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field }) => {
+                        return (
+                          <CustomTextField
+                            {...field}
+                            fullWidth
+                            label="Option"
+                            {...(errors.options?.[i]?.value && {
+                              error: true,
+                              helperText: "This field is required.",
+                            })}
+                          />
+                        );
+                      }}
+                    />
+
+                    <div className={cn("flex gap-2 mt-[1.10rem]")}>
+                      {fields.length > 1 && (
+                        <div className="">
+                          <Button
+                            variant="contained"
+                            type="button"
+                            color="error"
+                            onClick={() => remove(Number(item?.id))}>
+                            <i className="tabler-trash" />
+                          </Button>
+                        </div>
+                      )}
+                      {i === fields.length - 1 && (
+                        <div className="">
+                          <Button
+                            variant="contained"
+                            type="button"
+                            onClick={() => append({ value: "" })}>
+                            <i className="tabler-plus" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Grid>
+                );
+              })}
+
             <Grid item xs={12} className="flex gap-4">
               <Button variant="contained" type="submit">
                 Submit

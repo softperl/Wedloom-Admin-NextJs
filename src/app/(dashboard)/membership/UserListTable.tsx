@@ -325,10 +325,6 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
 
-  const handleDelete: Function = (value: string) => {
-    setOpen(true);
-    setEditValue(value);
-  };
   return (
     <>
       <Card>

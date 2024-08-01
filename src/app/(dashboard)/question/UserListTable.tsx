@@ -314,10 +314,6 @@ const UserListTable = ({ tableData }: { tableData?: QuestionType[] }) => {
       );
     }
   };
-  const handleDelete: Function = (value: string) => {
-    setOpen(true);
-    setEditValue(value);
-  };
 
   return (
     <>
