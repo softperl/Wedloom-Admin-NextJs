@@ -1,5 +1,12 @@
+import Grid from "@mui/material/Grid";
+import ApexAreaChart from "./ApexAreaChart";
+
 const DashboardAnalytics = async () => {
-  return <div className=""></div>;
+  return (
+    <Grid>
+      <ApexAreaChart serverMode={"light"} />
+    </Grid>
+  );
 };
 
 export default DashboardAnalytics;
