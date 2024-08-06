@@ -17,6 +17,7 @@ import FormHelperText from "@mui/material/FormHelperText";
 import MenuItem from "@mui/material/MenuItem";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { newQuestion } from "@/lib/api";
 
 type FormValues = {
   question: string;
@@ -24,7 +25,7 @@ type FormValues = {
   vendorType: string;
   labelName: string;
   inputType: string;
-  showLabel: boolean;
+  showLabel: string;
   options: { value: string }[];
 };
 
@@ -43,10 +44,9 @@ const FormValidationBasic = () => {
       question: "",
       questionType: "",
       vendorType: "",
-
       labelName: "",
-      inputType: "Text + Number",
-      showLabel: true,
+      inputType: "Text_Number",
+      showLabel: "Yes",
       options: [{ value: "" }],
     },
   });
@@ -55,9 +55,22 @@ const FormValidationBasic = () => {
     control,
     name: "options",
   });
-  const onSubmit = (value: any) => {
-    console.log(value);
-    toast.success("Form Submitted");
+  const onSubmit = async (value: any) => {
+    try {
+      console.log(value);
+      await newQuestion({
+        question: value.question,
+        questionType: value.questionType,
+        vendorType: value.vendorType,
+        inputType: value.inputType,
+        labelName: value.labelName,
+        showLabel: value.showLabel,
+        others: value.options,
+      });
+      toast.success("Form Submitted");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -101,7 +114,7 @@ const FormValidationBasic = () => {
                     <MenuItem value="">Select Question Type</MenuItem>
                     <MenuItem value="Food">Short</MenuItem>
                     <MenuItem value="Long">Long</MenuItem>
-                    <MenuItem value="Multiple Choice">Multiple Choice</MenuItem>
+                    <MenuItem value="Multiple_Choice">Multiple Choice</MenuItem>
                     <MenuItem value="Radio">Radio</MenuItem>
                     <MenuItem value="File">File</MenuItem>
                   </CustomTextField>
@@ -151,7 +164,7 @@ const FormValidationBasic = () => {
                     <MenuItem value="">Select Input Type</MenuItem>
                     <MenuItem value="Text">Text</MenuItem>
                     <MenuItem value="Number">Number</MenuItem>
-                    <MenuItem value="Text + Number">Text + Number</MenuItem>
+                    <MenuItem value="Text_Number">Text + Number</MenuItem>
                     <MenuItem value="File">File</MenuItem>
                   </CustomTextField>
                 )}
@@ -193,8 +206,8 @@ const FormValidationBasic = () => {
                     {...field}
                     error={Boolean(errors.showLabel)}>
                     <MenuItem value="">Select Show Label</MenuItem>
-                    <MenuItem value="true">Yes</MenuItem>
-                    <MenuItem value="false">No</MenuItem>
+                    <MenuItem value="Yes">Yes</MenuItem>
+                    <MenuItem value="No">No</MenuItem>
                   </CustomTextField>
                 )}
               />
@@ -204,7 +217,7 @@ const FormValidationBasic = () => {
             </Grid>
           </Grid>
           <Grid container spacing={6}>
-            {(watch("questionType").includes("Multiple Choice") ||
+            {(watch("questionType").includes("Multiple_Choice") ||
               watch("questionType").includes("Radio")) &&
               fields?.map((item, i) => {
                 return (
