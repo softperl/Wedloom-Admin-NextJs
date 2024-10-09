@@ -47,14 +47,13 @@ import TableFilters from "./TableFilters";
 // Util Imports
 
 // Style Imports
+import { approvalByUserId } from "@/lib/api";
+import { cn, handelError } from "@/lib/utils";
 import tableStyles from "@core/styles/table.module.css";
-import { formatDate } from "date-fns/format";
-import PermissionDialog from "@/components/dialogs/PermissionDialog";
-import Link from "next/link";
 import Chip from "@mui/material/Chip";
-import { cn } from "@/lib/utils";
-import DialogAddCard from "./DialogAddCard";
-import DialogBlock from "./DialogBlock";
+import { formatDate } from "date-fns/format";
+import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -71,9 +70,10 @@ export type UsersType = {
   name: string;
   email: string;
   createdAt: string;
-  category: string;
+  vendorType: string;
   city: string;
-  status: "Active" | "Block";
+  status: "Approved" | "Rejected";
+  isApproved: boolean;
 };
 
 type UsersTypeWithAction = UsersType & {
@@ -149,18 +149,14 @@ const userRoleObj: UserRoleType = {
 };
 
 export const userStatusObj: UserStatusType = {
-  Active: "success",
-  Block: "warning",
-  Pending: "warning",
   Approved: "success",
   Rejected: "error",
-  Featured: "primary",
 };
 
 // Column Definitions
 const columnHelper = createColumnHelper<UsersTypeWithAction>();
 
-const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
+const UserListTable = ({ tableData }: { tableData?: any }) => {
   // States
   const [open, setOpen] = useState(false);
   const [editValue, setEditValue] = useState<string>("");
@@ -226,9 +222,9 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
         ),
       }),
 
-      columnHelper.accessor("category", {
+      columnHelper.accessor("vendorType", {
         header: "Category",
-        cell: ({ row }) => <Typography>{row.original.category}</Typography>,
+        cell: ({ row }) => <Typography>{row.original.vendorType}</Typography>,
       }),
       columnHelper.accessor("city", {
         header: "City",
@@ -238,7 +234,7 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
         header: "Join Date",
         cell: ({ row }) => (
           <Typography>
-            {formatDate(row.original.createdAt, "ii MMM Y")}
+            {formatDate(row.original.createdAt, "ii MMM y")}
           </Typography>
         ),
       }),
@@ -248,132 +244,75 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
             Status
           </div>
         ),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <Chip
-              variant="tonal"
-              className="capitalize"
-              label={"Active"}
-              color={userStatusObj["Active"]}
-              size="small"
-            />
-            <Chip
-              variant="tonal"
-              className="capitalize"
-              label={"Rejected"}
-              color={userStatusObj["Rejected"]}
-              size="small"
-            />
-            <Chip
-              variant="tonal"
-              className="capitalize"
-              label={"Featured"}
-              color={userStatusObj["Featured"]}
-              size="small"
-            />
-          </div>
-        ),
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center gap-3">
+              <Chip
+                variant="tonal"
+                className="capitalize"
+                label={row.original.isApproved ? "Approved" : "Rejected"}
+                color={
+                  userStatusObj[
+                    row.original.isApproved ? "Approved" : "Rejected"
+                  ]
+                }
+                size="small"
+              />
+            </div>
+          );
+        },
       }),
       columnHelper.accessor("action", {
         header: "Action",
         cell: ({ row }) => {
-          const [remove, setRemove] = useState(false);
-          const [unBlock, setUnBlock] = useState(false);
-          const [block, setBlock] = useState(false);
-          const [confirmBlock, setConfirmBlock] = useState(false);
-          const [confirmUnBlock, setConfirmUnBlock] = useState(false);
-
-          const handleDelete: Function = (value: string) => {
-            setRemove(true);
-            setEditValue(value);
-          };
-
-          const handleCloseUnblock = () => {
-            setUnBlock(false);
-            setConfirmUnBlock(true);
-          };
-
-          const handleCloseBlock = () => {
-            setBlock(false);
-            setConfirmBlock(true);
+          const approvalFn = async (status: string) => {
+            try {
+              await approvalByUserId({
+                userId: row.original.id,
+                status,
+              });
+              toast.success(
+                status !== "Approved"
+                  ? "Rejected Successfully"
+                  : "Approved Successfully"
+              );
+            } catch (error) {
+              handelError(error);
+              console.log(error);
+            }
           };
 
           return (
             <>
               <div className="flex items-center">
-                <IconButton>
-                  <i className="tabler-eye text-[22px] text-textSecondary" />
-                </IconButton>
-                <IconButton onClick={() => setUnBlock(true)}>
-                  <i className="tabler-info-circle text-[20px] text-textSecondary" />
-                </IconButton>
+                <Link href={`/profile/${row?.original?.id}`}>
+                  <IconButton>
+                    <i className="tabler-eye text-[22px] text-textSecondary" />
+                  </IconButton>
+                </Link>
+
                 <OptionMenu
                   iconClassName="text-[22px] text-textSecondary"
                   options={[
                     {
-                      text:
-                        row.original.status === "Block" ? "Unblock" : "Block",
+                      text: row.original.isApproved ? "Rejected" : "Approved",
                       icon: cn(
                         "text-[22px]",
-                        row.original.status === "Block"
-                          ? "tabler-alert-circle"
-                          : "tabler-alert-circle-off"
+                        row.original.isApproved
+                          ? "tabler-alert-circle-off"
+                          : "tabler-alert-circle"
                       ),
                       menuItemProps: {
                         className: "flex items-center gap-2 text-textSecondary",
-                        onClick: () => setBlock(true),
-                      },
-                    },
-
-                    {
-                      text: "Delete",
-                      icon: (
-                        <i className="tabler-trash text-[22px] text-textSecondary" />
-                      ),
-                      menuItemProps: {
-                        className: "flex items-center gap-2 text-textSecondary",
-                        onClick: () => {
-                          handleDelete(row.original.id);
-                        },
+                        onClick: () =>
+                          row.original.isApproved
+                            ? approvalFn("Rejected")
+                            : approvalFn("Approved"),
                       },
                     },
                   ]}
                 />
               </div>
-
-              <PermissionDialog
-                open={remove}
-                setOpen={setRemove}
-                data={editValue}
-              />
-              <PermissionDialog
-                open={confirmBlock}
-                setOpen={setConfirmBlock}
-                data={{
-                  title:
-                    "Do you really want to block this user? This process cannot be undone.",
-                  button: "Block",
-                }}
-              />
-              <PermissionDialog
-                open={confirmUnBlock}
-                setOpen={setConfirmUnBlock}
-                data={{
-                  title:
-                    "Do you really want to unblock this user? This process cannot be undone.",
-                  button: "Unblock",
-                }}
-              />
-              <DialogAddCard
-                open={unBlock}
-                setOpen={setUnBlock}
-                handleClose={handleCloseUnblock}
-              />
-              <DialogBlock
-                open={block}
-                setOpen={setBlock}
-                handleClose={handleCloseBlock}
-              />
             </>
           );
         },

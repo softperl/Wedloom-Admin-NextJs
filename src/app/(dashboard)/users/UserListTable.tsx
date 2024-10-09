@@ -71,7 +71,7 @@ export type UsersType = {
   createdAt: string;
   eventDate: string;
   eventType: string;
-  status: "Active" | "Block";
+  status: "Active" | "Rejected" | "Featured";
 };
 
 type UsersTypeWithAction = UsersType & {
@@ -148,13 +148,14 @@ const userRoleObj: UserRoleType = {
 
 const userStatusObj: UserStatusType = {
   Active: "success",
-  Block: "error",
+  Rejected: "error",
+  Featured: "primary",
 };
 
 // Column Definitions
 const columnHelper = createColumnHelper<UsersTypeWithAction>();
 
-const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
+const UserListTable = ({ tableData }: { tableData?: any }) => {
   // States
   const [open, setOpen] = useState(false);
   const [editValue, setEditValue] = useState<string>("");
@@ -215,7 +216,7 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
         header: "Join Date",
         cell: ({ row }) => (
           <Typography>
-            {formatDate(row.original.createdAt, "ii MMM Y")}
+            {formatDate(row.original.createdAt, "ii MMM y")}
           </Typography>
         ),
       }),
@@ -228,20 +229,23 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
         header: "Event Type",
         cell: ({ row }) => <Typography>{row.original.eventType}</Typography>,
       }),
-      columnHelper.accessor("status", {
-        header: "Status",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <Chip
-              variant="tonal"
-              className="capitalize"
-              label={row.original.status}
-              color={userStatusObj[row.original.status]}
-              size="small"
-            />
-          </div>
-        ),
-      }),
+      // columnHelper.accessor("status", {
+      //   header: "Status",
+      //   cell: ({ row }) => {
+      //     console.log(row.original);
+      //     return (
+      //       <div className="flex items-center gap-3">
+      //         <Chip
+      //           variant="tonal"
+      //           className="capitalize"
+      //           label={row.original.status}
+      //           color={userStatusObj[row.original.status]}
+      //           size="small"
+      //         />
+      //       </div>
+      //     );
+      //   },
+      // }),
 
       columnHelper.accessor("action", {
         header: "Action",
@@ -255,21 +259,21 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
             <OptionMenu
               iconClassName="text-[22px] text-textSecondary"
               options={[
-                {
-                  text: row.original.status === "Block" ? "Unblock" : "Block",
-                  icon: cn(
-                    "text-[22px]",
-                    row.original.status === "Block"
-                      ? "tabler-alert-circle"
-                      : "tabler-alert-circle-off"
-                  ),
-                  menuItemProps: {
-                    className: "flex items-center gap-2 text-textSecondary",
-                    onClick: () => {
-                      console.log("Block");
-                    },
-                  },
-                },
+                // {
+                //   text: row.original.status === "Block" ? "Unblock" : "Block",
+                //   icon: cn(
+                //     "text-[22px]",
+                //     row.original.status === "Block"
+                //       ? "tabler-alert-circle"
+                //       : "tabler-alert-circle-off"
+                //   ),
+                //   menuItemProps: {
+                //     className: "flex items-center gap-2 text-textSecondary",
+                //     onClick: () => {
+                //       console.log("Block");
+                //     },
+                //   },
+                // },
                 {
                   text: "Delete",
                   icon: (

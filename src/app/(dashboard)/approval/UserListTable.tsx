@@ -4,17 +4,18 @@
 import { useEffect, useMemo, useState } from "react";
 
 // Next Imports
-import Link from "next/link";
+import { useParams } from "next/navigation";
 
 // MUI Imports
+import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
-import Chip from "@mui/material/Chip";
+import CardHeader from "@mui/material/CardHeader";
 import IconButton from "@mui/material/IconButton";
-import TablePagination from "@mui/material/TablePagination";
-import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
-import { styled } from "@mui/material/styles";
+import TablePagination from "@mui/material/TablePagination";
 import type { TextFieldProps } from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import { styled } from "@mui/material/styles";
 
 // Third-party Imports
 import type { RankingInfo } from "@tanstack/match-sorter-utils";
@@ -34,29 +35,28 @@ import {
 } from "@tanstack/react-table";
 import classnames from "classnames";
 
-import Button from "@mui/material/Button";
-
-import type { UsersType } from "@/types/apps/userTypes";
+// Type Imports
 import type { ThemeColor } from "@core/types";
 
 // Component Imports
 import TablePaginationComponent from "@components/TablePaginationComponent";
-import CustomAvatar from "@core/components/mui/Avatar";
+import CustomTextField from "@core/components/mui/TextField";
 import OptionMenu from "@core/components/option-menu";
+import TableFilters from "./TableFilters";
 
 // Util Imports
-import { getInitials } from "@/utils/getInitials";
 
 // Style Imports
 import tableStyles from "@core/styles/table.module.css";
-import { deletePost } from "@/lib/api";
-import CustomTextField from "@/@core/components/mui/TextField";
-import CardHeader from "@mui/material/CardHeader";
-import TableFilters from "./TableFilters";
 import { formatDate } from "date-fns/format";
 import PermissionDialog from "@/components/dialogs/PermissionDialog";
-import useUi from "@/lib/hooks/useUi";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Chip from "@mui/material/Chip";
+import { cn, handelError } from "@/lib/utils";
+import DialogAddCard from "./DialogAddCard";
+import DialogBlock from "./DialogBlock";
+import { finalApproval } from "@/lib/api";
+import toast from "react-hot-toast";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -66,19 +66,17 @@ declare module "@tanstack/table-core" {
     itemRank: RankingInfo;
   }
 }
-export type BlogsType = {
-  id?: string;
-  slug: string;
-  title: string;
-  author: string;
-  avatar: string;
-  category: any;
-  status: string;
-  createdAt: string;
+
+export type UsersType = {
+  id?: number;
+  name: string;
   user: any;
+  userId: string;
+  createdAt: string;
+  status: "Approved" | "Rejected";
 };
 
-type UsersTypeWithAction = BlogsType & {
+type UsersTypeWithAction = UsersType & {
   action?: string;
 };
 
@@ -150,26 +148,30 @@ const userRoleObj: UserRoleType = {
   subscriber: { icon: "tabler-user", color: "primary" },
 };
 
-const userStatusObj: UserStatusType = {
-  Published: "success",
-  Draft: "secondary",
+export const userStatusObj: UserStatusType = {
+  Active: "success",
+  Block: "warning",
+  Pending: "warning",
+  Approved: "success",
+  Rejected: "error",
+  Featured: "primary",
 };
 
 // Column Definitions
 const columnHelper = createColumnHelper<UsersTypeWithAction>();
 
-const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
+const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
   // States
+  const [open, setOpen] = useState(false);
+  const [editValue, setEditValue] = useState<string>("");
+  const [addUserOpen, setAddUserOpen] = useState(false);
   const [rowSelection, setRowSelection] = useState({});
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [data, setData] = useState(...[tableData]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const router = useRouter();
-  const { refreash } = useUi();
 
-  useEffect(() => {
-    router.refresh();
-  }, [refreash]);
+  // Hooks
+  const { lang: locale } = useParams();
 
   const columns = useMemo<ColumnDef<UsersTypeWithAction, any>[]>(
     () => [
@@ -187,53 +189,38 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
           </div>
         ),
       }),
-      columnHelper.accessor("title", {
-        header: "Title",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-4 w-72 line-clamp-1">
-            <div className="flex flex-col">
-              <Link href={`/blogs/${row.original.author}/${row.index + 1}`}>
+
+      columnHelper.accessor("name", {
+        header: "User Name",
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col">
                 <Typography color="text.primary" className="font-medium">
-                  {row.original.title}
+                  {row.original.user.name}
                 </Typography>
-              </Link>
+              </div>
             </div>
-          </div>
-        ),
-      }),
-      columnHelper.accessor("author", {
-        header: "Author",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col">
-              <Typography
-                color="text.primary"
-                className="font-medium capitalize">
-                {row.original.author}
-              </Typography>
-            </div>
-          </div>
-        ),
-      }),
-      columnHelper.accessor("category", {
-        header: "Categories",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col">
-              <Typography
-                color="text.primary"
-                className="font-medium capitalize">
-                {row.original.category.name}
-              </Typography>
-            </div>
-          </div>
-        ),
+          );
+        },
       }),
 
-      columnHelper.accessor("status", {
-        header: "Status",
+      columnHelper.accessor("createdAt", {
+        header: "Date",
         cell: ({ row }) => (
-          <div className="flex items-center gap-3">
+          <Typography>
+            {formatDate(row.original.createdAt, "ii MMM y")}
+          </Typography>
+        ),
+      }),
+      columnHelper.accessor("status", {
+        header: () => (
+          <div className="flex items-center justify-center text-center">
+            Status
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center justify-center">
             <Chip
               variant="tonal"
               className="capitalize"
@@ -244,67 +231,59 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
           </div>
         ),
       }),
-      columnHelper.accessor("createdAt", {
-        header: "Date",
-        cell: ({ row }) => (
-          <Typography>
-            {formatDate(row.original.createdAt, "ii MMM y")}
-          </Typography>
-        ),
-      }),
       columnHelper.accessor("action", {
         header: "Action",
         cell: ({ row }) => {
-          const [open, setOpen] = useState(false);
-          const [editValue, setEditValue] = useState<string>("");
-          const { refreash, setRefreash } = useUi();
-          const handelDelete = async () => {
+          const finalApprovalFn = async (status: string) => {
             try {
-              setOpen(false);
-              await deletePost(row.original.id!);
-              router.refresh();
-              setRefreash(!refreash);
+              await finalApproval({
+                id: row.original.id,
+                userId: row.original.userId,
+                status,
+              });
+              toast.success(
+                status !== "Approved"
+                  ? "Rejected Successfully"
+                  : "Approved Successfully"
+              );
             } catch (error) {
-              console.error(error);
-            } finally {
+              handelError(error);
+              console.log(error);
             }
           };
           return (
             <>
               <div className="flex items-center">
-                <IconButton>
-                  <Link href={"/"} className="flex">
+                <Link href={`/profile/${row?.original?.userId}`}>
+                  <IconButton>
                     <i className="tabler-eye text-[22px] text-textSecondary" />
-                  </Link>
-                </IconButton>
+                  </IconButton>
+                </Link>
                 <OptionMenu
                   iconClassName="text-[22px] text-textSecondary"
                   options={[
                     {
-                      text: "Edit",
-                      icon: "tabler-edit text-[22px]",
+                      text:
+                        row.original.status === "Approved"
+                          ? "Rejected"
+                          : "Approved",
+                      icon: cn(
+                        "text-[22px]",
+                        row.original.status === "Approved"
+                          ? "tabler-user-off"
+                          : "tabler-user"
+                      ),
                       menuItemProps: {
                         className: "flex items-center gap-2 text-textSecondary",
-                        onClick: () => {},
-                      },
-                    },
-                    {
-                      text: "Delete",
-                      icon: "tabler-trash text-[22px]",
-                      menuItemProps: {
-                        className: "flex items-center gap-2 text-textSecondary",
-                        onClick: () => setOpen(true),
+                        onClick: () =>
+                          row.original.status === "Approved"
+                            ? finalApprovalFn("Rejected")
+                            : finalApprovalFn("Approved"),
                       },
                     },
                   ]}
                 />
               </div>
-              <PermissionDialog
-                open={open}
-                setOpen={setOpen}
-                data={editValue}
-                action={handelDelete}
-              />
             </>
           );
         },
@@ -316,7 +295,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
   );
 
   const table = useReactTable({
-    data: data as BlogsType[],
+    data: data as UsersType[],
     columns,
     filterFns: {
       fuzzy: fuzzyFilter,
@@ -344,20 +323,11 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
 
-  const getAvatar = (params: Pick<UsersType, "avatar" | "fullName">) => {
-    const { avatar, fullName } = params;
-
-    if (avatar) {
-      return <CustomAvatar src={avatar} size={34} />;
-    } else {
-      return <CustomAvatar size={34}>{getInitials(fullName)}</CustomAvatar>;
-    }
-  };
-
   return (
     <>
       <Card>
-        <CardHeader title="Blogs" className="pbe-4" />
+        <CardHeader title="Approval" className="pbe-4" />
+
         <TableFilters
           setData={setData}
           //@ts-ignore
@@ -387,14 +357,6 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
               className="is-full sm:is-auto">
               Export
             </Button>
-            <Link href={"/blogs/new"}>
-              <Button
-                variant="contained"
-                startIcon={<i className="tabler-plus" />}
-                className="is-full sm:is-auto">
-                Add New Blog
-              </Button>
-            </Link>
           </div>
         </div>
         <div className="overflow-x-auto">

@@ -62,9 +62,9 @@ declare module "@tanstack/table-core" {
 
 export type UsersType = {
   id: string;
-  package: string;
-  packageType: string;
-  amount: string;
+  name: string;
+  type: string;
+  price: string;
   createdAt: string;
   status: "Active" | "Inactive";
 };
@@ -171,31 +171,29 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
           </Typography>
         ),
       }),
-      columnHelper.accessor("package", {
+      columnHelper.accessor("name", {
         header: "Package Name",
         cell: ({ row }) => (
-          <Typography color="text.primary">{row.original?.package}</Typography>
+          <Typography color="text.primary">{row.original?.name}</Typography>
         ),
       }),
 
-      columnHelper.accessor("packageType", {
+      columnHelper.accessor("type", {
         header: "Package Type",
         cell: ({ row }) => (
-          <Typography color="text.primary">
-            {row.original?.packageType}
-          </Typography>
+          <Typography color="text.primary">{row.original?.type}</Typography>
         ),
       }),
 
-      columnHelper.accessor("amount", {
+      columnHelper.accessor("price", {
         header: "Amount",
-        cell: ({ row }) => <Typography>{row.original?.amount}</Typography>,
+        cell: ({ row }) => <Typography>{row.original?.price}</Typography>,
       }),
       columnHelper.accessor("createdAt", {
         header: "createdAt",
         cell: ({ row }) => (
           <Typography>
-            {formatDate(row.original.createdAt, "ii MMM Y")}
+            {formatDate(row.original.createdAt, "ii MMM y")}
           </Typography>
         ),
       }),

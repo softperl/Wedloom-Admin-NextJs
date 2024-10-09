@@ -72,7 +72,33 @@ export const getMenus = () => API.get("/site/menus");
 export const deleteMenu = (id: string) => API.delete(`/site/menu/delete/${id}`);
 export const newSocialLinks = (formData: any) =>
   API.post("/site/social-links/new", formData);
+export const createPlan = (formData: any) =>
+  API.post("/site/plans/new", formData);
+export const newStep = (formData: any) => API.post("/site/steps/new", formData);
+export const getSteps = () => API.get("/site/get-all-steps");
+
+export const newPlan = (formData: any) => API.post("/site/plans/new", formData);
+export const getPlans = () => API.get("/site/plans");
+
+export const newCity = (formData: any) => API.post("/site/city/new", formData);
+export const getCities = () => API.get("/site/cities");
+export const deleteCity = (cityId: string) =>
+  API.delete(`/site/city/delete/${cityId}`);
+
+export const newVendorCategory = (formData: any) =>
+  API.post("/site/vendor-category/new", formData);
+export const getVendorCategories = () => API.get("/site/vendor-categories");
 
 //Question
 export const newQuestion = (formData: any) =>
   API.post("/question/new", formData);
+export const deleteQuestion = (id: string) =>
+  API.delete(`/question//delete/${id}`);
+
+//Approval
+export const finalApproval = (formData: any) => {
+  API.post(`/vendor/final-approval`, formData);
+};
+export const approvalByUserId = (formData: any) => {
+  API.post(`/vendor/approval-userId`, formData);
+};

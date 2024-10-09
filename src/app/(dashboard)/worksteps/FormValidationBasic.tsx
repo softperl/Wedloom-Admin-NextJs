@@ -17,10 +17,12 @@ import FormHelperText from "@mui/material/FormHelperText";
 import MenuItem from "@mui/material/MenuItem";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { newStep } from "@/lib/api";
+import { nanoid } from "nanoid";
 
 type FormValues = {
   steps: {
-    number: string;
     des: string;
   }[];
 };
@@ -34,10 +36,11 @@ const FormValidationBasic = () => {
     watch,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      steps: [{ number: "", des: "" }],
+      steps: [{ des: "" }],
     },
   });
 
@@ -46,9 +49,21 @@ const FormValidationBasic = () => {
     name: "steps",
   });
 
-  const onSubmit = (value: any) => {
-    console.log(value);
-    toast.success("Form Submitted");
+  useEffect(() => {
+    setValue("steps", fields);
+  }, []);
+
+  const onSubmit = async (value: FormValues) => {
+    try {
+      console.log(value.steps);
+      // await newStep(value.steps);
+      toast.success("Form Submitted");
+      reset({
+        steps: [{ des: "" }],
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -62,24 +77,6 @@ const FormValidationBasic = () => {
                 return (
                   <Grid key={item?.id} item xs={12} className="flex gap-2">
                     <Controller
-                      name={`steps.${i}.number`}
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field }) => {
-                        return (
-                          <CustomTextField
-                            {...field}
-                            fullWidth
-                            label="Step"
-                            {...(errors.steps?.[i]?.number && {
-                              error: true,
-                              helperText: "This field is required.",
-                            })}
-                          />
-                        );
-                      }}
-                    />
-                    <Controller
                       name={`steps.${i}.des`}
                       control={control}
                       rules={{ required: true }}
@@ -89,7 +86,7 @@ const FormValidationBasic = () => {
                             {...field}
                             fullWidth
                             label="Description"
-                            {...(errors.steps?.[i]?.number && {
+                            {...(errors.steps?.[i]?.des && {
                               error: true,
                               helperText: "This field is required.",
                             })}
@@ -105,7 +102,7 @@ const FormValidationBasic = () => {
                             variant="contained"
                             type="button"
                             color="error"
-                            onClick={() => remove(Number(item?.id))}>
+                            onClick={() => remove(i)}>
                             <i className="tabler-trash" />
                           </Button>
                         </div>
@@ -115,7 +112,7 @@ const FormValidationBasic = () => {
                           <Button
                             variant="contained"
                             type="button"
-                            onClick={() => append({ number: "", des: "" })}>
+                            onClick={() => append({ des: "" })}>
                             <i className="tabler-plus" />
                           </Button>
                         </div>

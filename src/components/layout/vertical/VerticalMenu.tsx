@@ -103,6 +103,9 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           <MenuItem href={`/vendors`}>Vendors</MenuItem>
           <MenuItem href={`/reports`}>Reports</MenuItem>
         </SubMenu>
+        <MenuItem href="/approval" icon={<i className="tabler-user-check" />}>
+          Approval
+        </MenuItem>
         <SubMenu
           label={"Membership"}
           icon={<i className="tabler-users-group" />}>

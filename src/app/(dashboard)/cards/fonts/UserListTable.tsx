@@ -189,7 +189,7 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
         header: "Upload Date",
         cell: ({ row }) => (
           <Typography>
-            {formatDate(row.original.createdAt, "ii MMM Y")}
+            {formatDate(row.original.createdAt, "ii MMM y")}
           </Typography>
         ),
       }),

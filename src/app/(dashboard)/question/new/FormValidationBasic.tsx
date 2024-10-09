@@ -12,12 +12,13 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 // Components Imports
+import { getVendorCategories, newQuestion, newVendorCategory } from "@/lib/api";
+import { cn, handelError } from "@/lib/utils";
 import CustomTextField from "@core/components/mui/TextField";
 import FormHelperText from "@mui/material/FormHelperText";
 import MenuItem from "@mui/material/MenuItem";
-import { usePathname, useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { newQuestion } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type FormValues = {
   question: string;
@@ -30,14 +31,28 @@ type FormValues = {
 };
 
 const FormValidationBasic = () => {
+  const [categories, setCategories] = useState([]);
   const router = useRouter();
-  const pathname = usePathname();
+
+  const getVendorType = async () => {
+    try {
+      const { data } = await getVendorCategories();
+      setCategories(data?.categories);
+    } catch (error) {
+      handelError(error);
+    }
+  };
+
+  useEffect(() => {
+    getVendorType();
+  }, []);
 
   const {
     control,
     watch,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -46,7 +61,7 @@ const FormValidationBasic = () => {
       vendorType: "",
       labelName: "",
       inputType: "Text_Number",
-      showLabel: "Yes",
+      showLabel: "true",
       options: [{ value: "" }],
     },
   });
@@ -55,9 +70,21 @@ const FormValidationBasic = () => {
     control,
     name: "options",
   });
+
+  useEffect(() => {
+    setValue("options", fields);
+  }, []);
+
   const onSubmit = async (value: any) => {
     try {
-      console.log(value);
+      const options =
+        (value.questionType === "Multiple_Choice" ||
+          value.questionType === "Radio") &&
+        value.options.length > 0 &&
+        value.options[0].value !== ""
+          ? value.options
+          : null;
+
       await newQuestion({
         question: value.question,
         questionType: value.questionType,
@@ -65,9 +92,11 @@ const FormValidationBasic = () => {
         inputType: value.inputType,
         labelName: value.labelName,
         showLabel: value.showLabel,
-        others: value.options,
+        others: options,
       });
-      toast.success("Form Submitted");
+      toast.success("Question Added");
+      reset();
+      router.push("/question");
     } catch (error) {
       console.log(error);
     }
@@ -112,11 +141,10 @@ const FormValidationBasic = () => {
                     {...field}
                     error={Boolean(errors.questionType)}>
                     <MenuItem value="">Select Question Type</MenuItem>
-                    <MenuItem value="Food">Short</MenuItem>
+                    <MenuItem value="Short">Short</MenuItem>
                     <MenuItem value="Long">Long</MenuItem>
                     <MenuItem value="Multiple_Choice">Multiple Choice</MenuItem>
                     <MenuItem value="Radio">Radio</MenuItem>
-                    <MenuItem value="File">File</MenuItem>
                   </CustomTextField>
                 )}
               />
@@ -137,10 +165,17 @@ const FormValidationBasic = () => {
                     {...field}
                     error={Boolean(errors.vendorType)}>
                     <MenuItem value="">Select Vendor Type</MenuItem>
-                    <MenuItem value="Photographer">Photographer</MenuItem>
-                    <MenuItem value="Beauty">Beauty</MenuItem>
-                    <MenuItem value="Developer">Developer</MenuItem>
-                    <MenuItem value="Venue">Venue</MenuItem>
+                    <MenuItem value="P">P</MenuItem>
+                    {categories.map((item: any, i: number) => {
+                      return (
+                        <MenuItem
+                          key={i}
+                          value={item?.name}
+                          className="capitalize">
+                          {item?.name}
+                        </MenuItem>
+                      );
+                    })}
                   </CustomTextField>
                 )}
               />
@@ -162,10 +197,9 @@ const FormValidationBasic = () => {
                     {...field}
                     error={Boolean(errors.inputType)}>
                     <MenuItem value="">Select Input Type</MenuItem>
-                    <MenuItem value="Text">Text</MenuItem>
-                    <MenuItem value="Number">Number</MenuItem>
                     <MenuItem value="Text_Number">Text + Number</MenuItem>
                     <MenuItem value="File">File</MenuItem>
+                    <MenuItem value="Number">Number</MenuItem>
                   </CustomTextField>
                 )}
               />
@@ -177,7 +211,7 @@ const FormValidationBasic = () => {
               <Controller
                 name="labelName"
                 control={control}
-                rules={{ required: true }}
+                rules={{ required: false }}
                 render={({ field }) => {
                   return (
                     <CustomTextField
@@ -206,8 +240,8 @@ const FormValidationBasic = () => {
                     {...field}
                     error={Boolean(errors.showLabel)}>
                     <MenuItem value="">Select Show Label</MenuItem>
-                    <MenuItem value="Yes">Yes</MenuItem>
-                    <MenuItem value="No">No</MenuItem>
+                    <MenuItem value="true">Yes</MenuItem>
+                    <MenuItem value="false">No</MenuItem>
                   </CustomTextField>
                 )}
               />
@@ -248,7 +282,7 @@ const FormValidationBasic = () => {
                             variant="contained"
                             type="button"
                             color="error"
-                            onClick={() => remove(Number(item?.id))}>
+                            onClick={() => remove(i)}>
                             <i className="tabler-trash" />
                           </Button>
                         </div>

@@ -53,6 +53,10 @@ import MenuItem from "@mui/material/MenuItem";
 import CustomTextField from "@/@core/components/mui/TextField";
 import TableFilters from "./TableFilters";
 import CardHeader from "@mui/material/CardHeader";
+import { formatDate } from "date-fns/format";
+import { deleteQuestion } from "@/lib/api";
+import useUi from "@/lib/hooks/useUi";
+import { useRouter } from "next/navigation";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -65,9 +69,9 @@ declare module "@tanstack/table-core" {
 export type QuestionType = {
   id: string;
   question: string;
-  type: string;
-  category: string;
-  date: string;
+  questionType: string;
+  vendorType: string;
+  createdAt: string;
 };
 
 type UsersTypeWithAction = QuestionType & {
@@ -147,6 +151,12 @@ const userStatusObj: UserStatusType = {
   false: "error",
 };
 
+const formatString = (input: string): string => {
+  let formatted = input.replace(/_/g, " ");
+  formatted = formatted.replace(/ /g, "  ");
+  return formatted;
+};
+
 // Column Definitions
 const columnHelper = createColumnHelper<UsersTypeWithAction>();
 
@@ -190,7 +200,7 @@ const UserListTable = ({ tableData }: { tableData?: QuestionType[] }) => {
           </div>
         ),
       }),
-      columnHelper.accessor("type", {
+      columnHelper.accessor("questionType", {
         header: "Type",
         cell: ({ row }) => (
           <div className="flex items-center gap-4">
@@ -198,36 +208,52 @@ const UserListTable = ({ tableData }: { tableData?: QuestionType[] }) => {
               <Typography
                 color="text.primary"
                 className="font-medium capitalize">
-                {row.original.type}
+                {formatString(row.original.questionType)}
               </Typography>
             </div>
           </div>
         ),
       }),
-      columnHelper.accessor("category", {
-        header: "Category",
+      columnHelper.accessor("vendorType", {
+        header: "vendorType",
         cell: ({ row }) => (
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
               <Typography
                 color="text.primary"
                 className="font-medium capitalize">
-                {row.original.category}
+                {row.original.vendorType}
               </Typography>
             </div>
           </div>
         ),
       }),
 
-      columnHelper.accessor("date", {
-        header: "Date",
-        cell: ({ row }) => <Typography>{row.original.date}</Typography>,
+      columnHelper.accessor("createdAt", {
+        header: "createdAt",
+        cell: ({ row }) => (
+          <Typography>
+            {formatDate(row.original.createdAt, "ii MMM y")}
+          </Typography>
+        ),
       }),
       columnHelper.accessor("action", {
         header: "Action",
         cell: ({ row }) => {
+          const router = useRouter();
           const [open, setOpen] = useState(false);
-          const [editValue, setEditValue] = useState<string>("");
+          const { refreash, setRefreash } = useUi();
+          const handelDelete = async () => {
+            try {
+              setOpen(false);
+              await deleteQuestion(row.original.id!);
+              router.refresh();
+              setRefreash(!refreash);
+            } catch (error) {
+              console.error(error);
+            } finally {
+            }
+          };
           return (
             <>
               <div className="flex items-center">
@@ -244,6 +270,9 @@ const UserListTable = ({ tableData }: { tableData?: QuestionType[] }) => {
                       icon: "tabler-edit text-[22px]",
                       menuItemProps: {
                         className: "flex items-center gap-2 text-textSecondary",
+                        onClick: () => {
+                          router.push(`/question/edit/${row.original.id}`);
+                        },
                       },
                     },
                     {
@@ -262,7 +291,7 @@ const UserListTable = ({ tableData }: { tableData?: QuestionType[] }) => {
               <PermissionDialog
                 open={open}
                 setOpen={setOpen}
-                data={editValue}
+                action={handelDelete}
               />
             </>
           );

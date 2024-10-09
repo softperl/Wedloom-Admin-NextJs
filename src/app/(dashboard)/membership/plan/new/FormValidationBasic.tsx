@@ -10,20 +10,21 @@ import CardHeader from "@mui/material/CardHeader";
 import Grid from "@mui/material/Grid";
 
 // Third-party Imports
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 // Components Imports
 
+import { cn, handelError } from "@/lib/utils";
 import CustomTextField from "@core/components/mui/TextField";
 import CardActions from "@mui/material/CardActions";
 import Divider from "@mui/material/Divider";
-import Typography from "@mui/material/Typography";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import MenuItem from "@mui/material/MenuItem";
 import FormHelperText from "@mui/material/FormHelperText";
+import MenuItem from "@mui/material/MenuItem";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { newPlan } from "@/lib/api";
+import { nanoid } from "nanoid";
 
 // Styled Component Imports
 
@@ -32,13 +33,11 @@ type FormValues = {
   planName: string;
   price: string;
   tax: string;
-  features: string[];
+  features: { feature: string }[];
 };
 
 const FormValidationBasic = () => {
   const router = useRouter();
-  const [features, setFeatures] = useState<string[]>([""]);
-  const [yearlyFeatures, setYearlyFeatures] = useState<string[]>([""]);
   // Hooks
   const {
     control,
@@ -46,31 +45,46 @@ const FormValidationBasic = () => {
     handleSubmit,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<FormValues>({
     defaultValues: {
       planType: "",
       planName: "",
       price: "",
       tax: "",
-      features: [""],
+      features: [{ feature: "" }],
     },
   });
 
-  const onSubmit = () => toast.success("Form Submitted");
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "features",
+  });
 
-  const handleAddFeature = (type: "monthly" | "yearly") => {
-    if (type === "monthly") {
-      setFeatures([...features, ""]);
-    } else {
-      setYearlyFeatures([...yearlyFeatures, ""]);
-    }
-  };
+  useEffect(() => {
+    setValue("features", fields);
+  }, []);
 
-  const handleRemoveFeature = (index: number, type: "monthly" | "yearly") => {
-    if (type === "monthly") {
-      setFeatures(features.filter((_, i) => i !== index));
-    } else {
-      setYearlyFeatures(yearlyFeatures.filter((_, i) => i !== index));
+  const onSubmit = async (value: any) => {
+    console.log(value);
+    const features =
+      value.features.length > 0 && value.features[0].feature !== ""
+        ? value.features
+        : null;
+    try {
+      await newPlan({
+        id: nanoid(),
+        type: value.planType,
+        name: value.planName,
+        price: value.price,
+        tax: value.tax,
+        features: features,
+      });
+      toast.success("Plan Added Successfully");
+      router.push("/membership/plan");
+    } catch (error) {
+      console.error(error);
+      handelError(error);
     }
   };
 
@@ -164,13 +178,13 @@ const FormValidationBasic = () => {
               </Grid>
             )}
             {watch("planType") !== "" &&
-              features?.map((_, index) => {
-                const isLast = index === features.length - 1;
+              fields?.map((item, index) => {
+                const isLast = index === fields.length - 1;
                 return (
-                  <Grid item xs={12} sm={6} key={index}>
+                  <Grid item xs={12} sm={6} key={item?.id}>
                     <div className="flex gap-2">
                       <Controller
-                        name={`features.${index}`}
+                        name={`features.${index}.feature`}
                         control={control}
                         rules={{ required: true }}
                         render={({ field }) => (
@@ -179,7 +193,7 @@ const FormValidationBasic = () => {
                             fullWidth
                             label={`Feature ${index + 1}`}
                             placeholder={`Feature ${index + 1}`}
-                            {...(errors.features && {
+                            {...(errors.features?.[index]?.feature && {
                               error: true,
                               helperText: "This field is required.",
                             })}
@@ -189,9 +203,7 @@ const FormValidationBasic = () => {
                       <div className="relative">
                         <Button
                           onClick={() =>
-                            isLast
-                              ? handleAddFeature("monthly")
-                              : handleRemoveFeature(index, "monthly")
+                            isLast ? append({ feature: "" }) : remove(index)
                           }
                           variant="tonal"
                           type="button"

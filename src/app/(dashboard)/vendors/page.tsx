@@ -13,6 +13,7 @@ const UserListApp = async ({
     perPage?: string;
   };
 }) => {
+  const role = "Vendor";
   const q = searchParams?.q || "";
   const currentPage = Number(searchParams?.page) || 1;
   const perPage = Number(searchParams?.perPage) || 50;
@@ -21,7 +22,7 @@ const UserListApp = async ({
   let total = 0;
   try {
     data = await fetchFn(
-      `/admin/auth/get-all-users?q=${q}&page=${currentPage}&perPage=${perPage}`,
+      `/admin/auth/get-all-users?role=${role}&q=${q}&page=${currentPage}&perPage=${perPage}`,
       {
         method: "GET",
         next: {
