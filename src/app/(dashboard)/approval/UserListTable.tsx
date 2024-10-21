@@ -256,7 +256,7 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
               <div className="flex items-center">
                 <Link
                   target="_blank"
-                  href={`http://localhost:3001/admin-view/${row?.original?.userId}/profile`}>
+                  href={`https://wedplanr.com/admin-view/${row?.original?.userId}/profile`}>
                   <IconButton>
                     <i className="tabler-eye text-[22px] text-textSecondary" />
                   </IconButton>
