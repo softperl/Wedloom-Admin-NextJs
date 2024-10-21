@@ -168,8 +168,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
             <div className="flex flex-col">
               <Typography
                 color="text.primary"
-                className="font-medium capitalize"
-              >
+                className="font-medium capitalize">
                 {row.index + 1}
               </Typography>
             </div>
@@ -302,7 +301,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
 
-  const getAvatar = (params: Pick<UsersType, "avatar" | "fullName">) => {
+  const getAvatar = (params: any) => {
     const { avatar, fullName } = params;
 
     if (avatar) {
@@ -328,8 +327,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
             select
             value={table.getState().pagination.pageSize}
             onChange={(e) => table.setPageSize(Number(e.target.value))}
-            className="is-[70px]"
-          >
+            className="is-[70px]">
             <MenuItem value="10">10</MenuItem>
             <MenuItem value="25">25</MenuItem>
             <MenuItem value="50">50</MenuItem>
@@ -345,16 +343,14 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
               color="secondary"
               variant="tonal"
               startIcon={<i className="tabler-upload" />}
-              className="is-full sm:is-auto"
-            >
+              className="is-full sm:is-auto">
               Export
             </Button>
             <Link href={"/terms/new"}>
               <Button
                 variant="contained"
                 startIcon={<i className="tabler-plus" />}
-                className="is-full sm:is-auto"
-              >
+                className="is-full sm:is-auto">
                 Add New Terms
               </Button>
             </Link>
@@ -375,8 +371,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
                               "cursor-pointer select-none":
                                 header.column.getCanSort(),
                             })}
-                            onClick={header.column.getToggleSortingHandler()}
-                          >
+                            onClick={header.column.getToggleSortingHandler()}>
                             {flexRender(
                               header.column.columnDef.header,
                               header.getContext()
@@ -401,8 +396,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
                 <tr>
                   <td
                     colSpan={table.getVisibleFlatColumns().length}
-                    className="text-center"
-                  >
+                    className="text-center">
                     No data available
                   </td>
                 </tr>
@@ -418,8 +412,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
                         key={row.id}
                         className={classnames({
                           selected: row.getIsSelected(),
-                        })}
-                      >
+                        })}>
                         {row.getVisibleCells().map((cell) => (
                           <td key={cell.id}>
                             {flexRender(

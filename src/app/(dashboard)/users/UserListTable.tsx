@@ -50,7 +50,7 @@ import TableFilters from "./TableFilters";
 import tableStyles from "@core/styles/table.module.css";
 import { formatDate } from "date-fns/format";
 import Link from "next/link";
-import PermissionDialog from "@/components/dialogs/PermissionDialog";
+import PermissionDialog from "@/components/dialogs/permission-dialog/index";
 import Chip from "@mui/material/Chip";
 import { cn } from "@/lib/utils";
 

@@ -1,13 +1,13 @@
 // MUI Imports
-import Grid from '@mui/material/Grid'
+import Grid from "@mui/material/Grid";
 
 // Type Imports
-import type { PricingPlanType } from '@/types/pages/pricingTypes'
+import type { PricingPlanType } from "@/types/apps/pricingTypes";
 
 // Component Imports
-import CurrentPlan from './CurrentPlan'
-import PaymentMethod from './PaymentMethod'
-import BillingAddress from './BillingAddress'
+import CurrentPlan from "./CurrentPlan";
+import PaymentMethod from "./PaymentMethod";
+import BillingAddress from "./BillingAddress";
 
 const BillingPlans = ({ data }: { data: PricingPlanType[] }) => {
   return (
@@ -22,7 +22,7 @@ const BillingPlans = ({ data }: { data: PricingPlanType[] }) => {
         <BillingAddress />
       </Grid>
     </Grid>
-  )
-}
+  );
+};
 
-export default BillingPlans
+export default BillingPlans;

@@ -45,7 +45,7 @@ const TableFilters = ({
   tableData,
 }: {
   setData: any;
-  tableData?: UsersType[];
+  tableData?: any;
 }) => {
   // States
   const [role, setRole] = useState<UsersType["role"]>("");
@@ -55,7 +55,7 @@ const TableFilters = ({
   const [endDate, setEndDate] = useState<Date | undefined | null>(null);
 
   useEffect(() => {
-    const filteredData = tableData?.filter((user) => {
+    const filteredData = tableData?.filter((user: any) => {
       if (role && user.role !== role) return false;
       if (plan && user.currentPlan !== plan) return false;
       if (status && user.status !== status) return false;

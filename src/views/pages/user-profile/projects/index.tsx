@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
 // Next Imports
-import Link from 'next/link'
+import Link from "next/link";
 
 // MUI Imports
-import Grid from '@mui/material/Grid'
-import Chip from '@mui/material/Chip'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
-import LinearProgress from '@mui/material/LinearProgress'
-import AvatarGroup from '@mui/material/AvatarGroup'
-import Tooltip from '@mui/material/Tooltip'
+import Grid from "@mui/material/Grid";
+import Chip from "@mui/material/Chip";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
+import LinearProgress from "@mui/material/LinearProgress";
+import AvatarGroup from "@mui/material/AvatarGroup";
+import Tooltip from "@mui/material/Tooltip";
 
 // Type Imports
-import type { ProjectsTabType } from '@/types/pages/profileTypes'
+import type { ProjectsTabType } from "@/types/apps/profileTypes";
 
 // Component Imports
-import OptionMenu from '@core/components/option-menu'
-import CustomAvatar from '@core/components/mui/Avatar'
+import OptionMenu from "@core/components/option-menu";
+import CustomAvatar from "@core/components/mui/Avatar";
 
 const Projects = ({ data }: { data?: ProjectsTabType[] }) => {
   return (
@@ -29,59 +29,67 @@ const Projects = ({ data }: { data?: ProjectsTabType[] }) => {
           return (
             <Grid item key={index} xs={12} md={6} lg={4}>
               <Card>
-                <CardContent className='flex flex-col gap-4'>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-4'>
+                <CardContent className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
                       <CustomAvatar src={item.avatar} size={38} />
                       <div>
                         <Typography
-                          variant='h5'
-                          href='/'
+                          variant="h5"
+                          href="/"
                           component={Link}
-                          onClick={e => e.preventDefault()}
-                          className='hover:text-primary'
-                        >
+                          onClick={(e) => e.preventDefault()}
+                          className="hover:text-primary">
                           {item.title}
                         </Typography>
                         <Typography>
-                          <span className='font-medium'>Client: </span>
+                          <span className="font-medium">Client: </span>
                           {item.client}
                         </Typography>
                       </div>
                     </div>
                     <OptionMenu
-                      iconClassName='text-textDisabled'
+                      iconClassName="text-textDisabled"
                       options={[
-                        'Rename Project',
-                        'View Details',
-                        'Add to Favorite',
+                        "Rename Project",
+                        "View Details",
+                        "Add to Favorite",
                         { divider: true },
                         {
-                          text: 'Leave Project',
-                          menuItemProps: { className: 'text-error hover:bg-[var(--mui-palette-error-lightOpacity)]' }
-                        }
+                          text: "Leave Project",
+                          menuItemProps: {
+                            className:
+                              "text-error hover:bg-[var(--mui-palette-error-lightOpacity)]",
+                          },
+                        },
                       ]}
                     />
                   </div>
-                  <div className='flex items-center justify-between flex-wrap gap-4'>
-                    <div className='rounded bg-actionHover plb-2 pli-3'>
-                      <div className='flex'>
-                        <Typography className='font-medium' color='text.primary'>
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="rounded bg-actionHover plb-2 pli-3">
+                      <div className="flex">
+                        <Typography
+                          className="font-medium"
+                          color="text.primary">
                           {item.budgetSpent}
                         </Typography>
                         <Typography>{`/${item.budget}`}</Typography>
                       </div>
                       <Typography>Total Budget</Typography>
                     </div>
-                    <div className='flex flex-col'>
-                      <div className='flex'>
-                        <Typography className='font-medium' color='text.primary'>
+                    <div className="flex flex-col">
+                      <div className="flex">
+                        <Typography
+                          className="font-medium"
+                          color="text.primary">
                           Start Date:
                         </Typography>
                         <Typography>{item.startDate}</Typography>
                       </div>
-                      <div className='flex'>
-                        <Typography className='font-medium' color='text.primary'>
+                      <div className="flex">
+                        <Typography
+                          className="font-medium"
+                          color="text.primary">
                           Deadline:
                         </Typography>
                         <Typography>{item.deadline}</Typography>
@@ -91,61 +99,70 @@ const Projects = ({ data }: { data?: ProjectsTabType[] }) => {
                   <Typography>{item.description}</Typography>
                 </CardContent>
                 <Divider />
-                <CardContent className='flex flex-col gap-4'>
-                  <div className='flex items-center justify-between '>
-                    <div className='flex'>
-                      <Typography className='font-medium' color='text.primary'>
+                <CardContent className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between ">
+                    <div className="flex">
+                      <Typography className="font-medium" color="text.primary">
                         All Hours:
                       </Typography>
                       <Typography>{item.hours}</Typography>
                     </div>
-                    <Chip variant='tonal' size='small' color={item.chipColor} label={`${item.daysLeft} days left`} />
-                  </div>
-                  <div>
-                    <div className='flex items-center justify-between mbe-2'>
-                      <Typography
-                        variant='caption'
-                        className='text-textSecondary'
-                      >{`Tasks: ${item.completedTask}/${item.totalTask}`}</Typography>
-                      <Typography
-                        variant='caption'
-                        className='text-textSecondary'
-                      >{`${Math.round((item.completedTask / item.totalTask) * 100)}% Completed`}</Typography>
-                    </div>
-                    <LinearProgress
-                      color='primary'
-                      variant='determinate'
-                      value={Math.round((item.completedTask / item.totalTask) * 100)}
-                      className='bs-2'
+                    <Chip
+                      variant="tonal"
+                      size="small"
+                      color={item.chipColor}
+                      label={`${item.daysLeft} days left`}
                     />
                   </div>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center flex-grow gap-3'>
-                      <AvatarGroup className='items-center pull-up'>
+                  <div>
+                    <div className="flex items-center justify-between mbe-2">
+                      <Typography
+                        variant="caption"
+                        className="text-textSecondary">{`Tasks: ${item.completedTask}/${item.totalTask}`}</Typography>
+                      <Typography
+                        variant="caption"
+                        className="text-textSecondary">{`${Math.round((item.completedTask / item.totalTask) * 100)}% Completed`}</Typography>
+                    </div>
+                    <LinearProgress
+                      color="primary"
+                      variant="determinate"
+                      value={Math.round(
+                        (item.completedTask / item.totalTask) * 100
+                      )}
+                      className="bs-2"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center flex-grow gap-3">
+                      <AvatarGroup className="items-center pull-up">
                         {item.avatarGroup.map((person, index) => {
                           return (
                             <Tooltip key={index} title={person.name}>
-                              <CustomAvatar src={person.avatar} alt={person.name} size={32} />
+                              <CustomAvatar
+                                src={person.avatar}
+                                alt={person.name}
+                                size={32}
+                              />
                             </Tooltip>
-                          )
+                          );
                         })}
                       </AvatarGroup>
-                      <Typography variant='body2' className='flex-grow'>
+                      <Typography variant="body2" className="flex-grow">
                         {item.members}
                       </Typography>
                     </div>
-                    <div className='flex items-center gap-1'>
-                      <i className='tabler-message-dots' />
+                    <div className="flex items-center gap-1">
+                      <i className="tabler-message-dots" />
                       <Typography>{item.comments}</Typography>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </Grid>
-          )
+          );
         })}
     </Grid>
-  )
-}
+  );
+};
 
-export default Projects
+export default Projects;

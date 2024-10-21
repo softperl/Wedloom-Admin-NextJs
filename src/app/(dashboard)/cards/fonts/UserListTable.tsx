@@ -47,7 +47,7 @@ import TableFilters from "./TableFilters";
 // Style Imports
 import tableStyles from "@core/styles/table.module.css";
 import { formatDate } from "date-fns/format";
-import PermissionDialog from "@/components/dialogs/PermissionDialog";
+import PermissionDialog from "@/components/dialogs/permission-dialog/index";
 import Link from "next/link";
 import Chip from "@mui/material/Chip";
 import { cn } from "@/lib/utils";
@@ -299,7 +299,7 @@ const UserListTable = ({ tableData }: { tableData?: UsersType[] }) => {
       <Card>
         <CardHeader title="Cards" className="pbe-4" />
 
-        <TableFilters setData={setData} tableData={tableData} />
+        <TableFilters setData={setData} />
         <div className="flex justify-between flex-col items-start md:flex-row md:items-center p-6 border-bs gap-4">
           <CustomTextField
             select

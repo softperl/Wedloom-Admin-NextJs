@@ -215,7 +215,7 @@ const UserListTable = ({ tableData }: { tableData?: any[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
 
-  const getAvatar = (params: Pick<UsersType, "avatar" | "fullName">) => {
+  const getAvatar = (params: any) => {
     const { avatar, fullName } = params;
 
     if (avatar) {

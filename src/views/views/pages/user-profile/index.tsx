@@ -1,29 +1,35 @@
-'use client'
+"use client";
 
 // React Imports
-import { useState } from 'react'
-import type { ReactElement, SyntheticEvent } from 'react'
+import { useState } from "react";
+import type { ReactElement, SyntheticEvent } from "react";
 
 // MUI Imports
-import Grid from '@mui/material/Grid'
-import Tab from '@mui/material/Tab'
-import TabContext from '@mui/lab/TabContext'
-import TabPanel from '@mui/lab/TabPanel'
+import Grid from "@mui/material/Grid";
+import Tab from "@mui/material/Tab";
+import TabContext from "@mui/lab/TabContext";
+import TabPanel from "@mui/lab/TabPanel";
 
 // Type Imports
-import type { Data } from '@/types/pages/profileTypes'
+import type { Data } from "@/types/apps/profileTypes";
 
 // Component Imports
-import UserProfileHeader from './UserProfileHeader'
-import CustomTabList from '@core/components/mui/TabList'
+import UserProfileHeader from "./UserProfileHeader";
+import CustomTabList from "@core/components/mui/TabList";
 
-const UserProfile = ({ tabContentList, data }: { tabContentList: { [key: string]: ReactElement }; data: Data }) => {
+const UserProfile = ({
+  tabContentList,
+  data,
+}: {
+  tabContentList: { [key: string]: ReactElement };
+  data: Data;
+}) => {
   // States
-  const [activeTab, setActiveTab] = useState('profile')
+  const [activeTab, setActiveTab] = useState("profile");
 
   const handleChange = (event: SyntheticEvent, value: string) => {
-    setActiveTab(value)
-  }
+    setActiveTab(value);
+  };
 
   return (
     <Grid container spacing={6}>
@@ -31,55 +37,58 @@ const UserProfile = ({ tabContentList, data }: { tabContentList: { [key: string]
         <UserProfileHeader data={data?.profileHeader} />
       </Grid>
       {activeTab === undefined ? null : (
-        <Grid item xs={12} className='flex flex-col gap-6'>
+        <Grid item xs={12} className="flex flex-col gap-6">
           <TabContext value={activeTab}>
-            <CustomTabList onChange={handleChange} variant='scrollable' pill='true'>
+            <CustomTabList
+              onChange={handleChange}
+              variant="scrollable"
+              pill="true">
               <Tab
                 label={
-                  <div className='flex items-center gap-1.5'>
-                    <i className='tabler-user-check text-lg' />
+                  <div className="flex items-center gap-1.5">
+                    <i className="tabler-user-check text-lg" />
                     Profile
                   </div>
                 }
-                value='profile'
+                value="profile"
               />
               <Tab
                 label={
-                  <div className='flex items-center gap-1.5'>
-                    <i className='tabler-users text-lg' />
+                  <div className="flex items-center gap-1.5">
+                    <i className="tabler-users text-lg" />
                     Teams
                   </div>
                 }
-                value='teams'
+                value="teams"
               />
               <Tab
                 label={
-                  <div className='flex items-center gap-1.5'>
-                    <i className='tabler-layout-grid text-lg' />
+                  <div className="flex items-center gap-1.5">
+                    <i className="tabler-layout-grid text-lg" />
                     Projects
                   </div>
                 }
-                value='projects'
+                value="projects"
               />
               <Tab
                 label={
-                  <div className='flex items-center gap-1.5'>
-                    <i className='tabler-link text-lg' />
+                  <div className="flex items-center gap-1.5">
+                    <i className="tabler-link text-lg" />
                     Connections
                   </div>
                 }
-                value='connections'
+                value="connections"
               />
             </CustomTabList>
 
-            <TabPanel value={activeTab} className='p-0'>
+            <TabPanel value={activeTab} className="p-0">
               {tabContentList[activeTab]}
             </TabPanel>
           </TabContext>
         </Grid>
       )}
     </Grid>
-  )
-}
+  );
+};
 
-export default UserProfile
+export default UserProfile;

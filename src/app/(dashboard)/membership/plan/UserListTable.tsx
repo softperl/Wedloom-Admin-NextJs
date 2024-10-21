@@ -44,7 +44,7 @@ import CustomTextField from "@core/components/mui/TextField";
 import OptionMenu from "@core/components/option-menu";
 
 // Style Imports
-import PermissionDialog from "@/components/dialogs/PermissionDialog";
+import PermissionDialog from "@/components/dialogs/permission-dialog/index";
 import { cn } from "@/lib/utils";
 import tableStyles from "@core/styles/table.module.css";
 import Chip from "@mui/material/Chip";

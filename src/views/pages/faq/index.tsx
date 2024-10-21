@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
 // React Imports
-import { useState } from 'react'
+import { useState } from "react";
 
 // MUI Imports
-import Grid from '@mui/material/Grid'
+import Grid from "@mui/material/Grid";
 
 // Type Imports
-import type { FaqType } from '@/types/pages/faqTypes'
+import type { FaqType } from "@/types/apps/faqTypes";
 
 // Component Imports
-import FaqHeader from '@views/pages/faq/FaqHeader'
-import Faqs from '@views/pages/faq/Faqs'
-import FaqFooter from '@views/pages/faq/FaqFooter'
+import FaqHeader from "@views/pages/faq/FaqHeader";
+import Faqs from "@views/pages/faq/Faqs";
+import FaqFooter from "@views/pages/faq/FaqFooter";
 
 const FAQ = ({ data }: { data: FaqType[] }) => {
   // States
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState("");
 
   return (
     <Grid container spacing={6}>
@@ -30,7 +30,7 @@ const FAQ = ({ data }: { data: FaqType[] }) => {
         <FaqFooter />
       </Grid>
     </Grid>
-  )
-}
+  );
+};
 
-export default FAQ
+export default FAQ;

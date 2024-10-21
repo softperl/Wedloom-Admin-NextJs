@@ -52,7 +52,7 @@ import { CardHeader } from "@mui/material";
 import TableFilters from "./TableFilters";
 import { TextFieldProps } from "@mui/material/TextField";
 import CustomTextField from "@/@core/components/mui/TextField";
-import PermissionDialog from "@/components/dialogs/PermissionDialog";
+import PermissionDialog from "@/components/dialogs/permission-dialog/index";
 
 declare module "@tanstack/table-core" {
   interface FilterFns {
@@ -271,7 +271,7 @@ const UserListTable = ({ tableData }: { tableData?: BlogsType[] }) => {
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
 
-  const getAvatar = (params: Pick<UsersType, "avatar" | "fullName">) => {
+  const getAvatar = (params: any) => {
     const { avatar, fullName } = params;
 
     if (avatar) {

@@ -49,7 +49,7 @@ import TableFilters from "./TableFilters";
 // Style Imports
 import tableStyles from "@core/styles/table.module.css";
 import { formatDate } from "date-fns/format";
-import PermissionDialog from "@/components/dialogs/PermissionDialog";
+import PermissionDialog from "@/components/dialogs/permission-dialog/index";
 import Link from "next/link";
 import Chip from "@mui/material/Chip";
 import { cn, handelError } from "@/lib/utils";
