@@ -1,42 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { jwtDecode } from 'jwt-decode'
+import { NextRequest, NextResponse } from "next/server";
+import { jwtDecode } from "jwt-decode";
 
 export type TUser = {
-  id: string
-  name: string
-  email: string
-  profilePhoto: string
-  role: string
-  session: string
-}
+  id: string;
+  name: string;
+  email: string;
+  profilePhoto: string;
+  role: string;
+  session: string;
+};
 
 export default async function middleware(req: NextRequest) {
-  const searchParams = req.nextUrl.searchParams.toString()
-  const pathname = req.nextUrl.pathname
-  const requestHeaders = new Headers(req.headers)
+  const searchParams = req.nextUrl.searchParams.toString();
+  const pathname = req.nextUrl.pathname;
+  const requestHeaders = new Headers(req.headers);
 
-  let user = null
-  const accessToken = req.cookies.get('accessToken')?.value
+  let user = null;
+  const accessToken = req.cookies.get("accessToken")?.value;
 
   if (accessToken) {
     try {
-      const decodedUser: TUser & { exp: number } = jwtDecode(`${accessToken}`)
-      user = decodedUser
+      const decodedUser: TUser & { exp: number } = jwtDecode(`${accessToken}`);
+      user = decodedUser;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 
-  const publicRoutes = ['/signin']
+  const publicRoutes = ["/signin"];
 
   if (!user) {
-    if (publicRoutes.some(route => pathname.startsWith(route))) {
+    if (publicRoutes.some((route) => pathname.startsWith(route))) {
     } else {
-      return NextResponse.redirect(new URL(`/signin?next=${pathname}`, req.url))
+      return NextResponse.redirect(new URL(`/signin`, req.url));
     }
   } else {
-    if (publicRoutes.some(route => pathname.startsWith(route))) {
-      return NextResponse.redirect(new URL('/', req.url))
+    if (publicRoutes.some((route) => pathname.startsWith(route))) {
+      return NextResponse.redirect(new URL("/", req.url));
     }
   }
 }
@@ -50,9 +50,9 @@ export const config = {
      * 3. /_static (inside /public)
      * 4. all root files inside /public (e.g. /favicon.ico)
      */
-    '/((?!api/|_next/|_static/|_vercel|[\\w-]+\\.\\w+).*)'
-  ]
-}
+    "/((?!api/|_next/|_static/|_vercel|[\\w-]+\\.\\w+).*)",
+  ],
+};
 
 // return NextResponse.rewrite(
 //   new URL(`/application${pathname === "/" ? "/home" : pathname}`, req.url)
