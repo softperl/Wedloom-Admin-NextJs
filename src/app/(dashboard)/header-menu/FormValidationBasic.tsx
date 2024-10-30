@@ -2,7 +2,7 @@
 
 import CustomTextField from "@/@core/components/mui/TextField";
 import useSiteMenu from "@/lib/hooks/useSiteMenu";
-import { cn, slugify } from "@/lib/utils";
+import { cn, handelError, slugify } from "@/lib/utils";
 import {
   Button,
   Card,
@@ -28,6 +28,8 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { MenuForm, MenuItem } from "./menuForm";
+import { newMenu } from "@/lib/api";
+import { toast } from "react-hot-toast";
 
 // Styled component for Accordion component
 const Accordion = styled(MuiAccordion)<AccordionProps>({
@@ -82,8 +84,22 @@ const FormValidationBasic = () => {
   const { menuItems, setMenuItems } = useSiteMenu();
   const methods = useForm<FormValues>({ defaultValues: { menuItems } });
 
-  const onSubmit = (data: FormValues) => {
-    console.log(data); // Handle form submission with the entire data
+  const onSubmit = async (data: any) => {
+    console.log(menuItems); // Handle form submission with the entire data
+
+    try {
+      await newMenu({
+        id: nanoid(),
+        menus: data.menuItems,
+      });
+      methods.resetField(
+        "menuItems" // Reset the 'menuItems' field
+      );
+      toast.success("Menu Added");
+    } catch (error) {
+      console.log(error);
+      handelError(error);
+    }
   };
 
   return (

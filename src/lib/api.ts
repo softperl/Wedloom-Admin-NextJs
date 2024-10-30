@@ -70,6 +70,9 @@ export const deleteRefund = () => API.delete("/site/refund/delete");
 export const newMenu = (formData: any) => API.post("/site/menu/new", formData);
 export const getMenus = () => API.get("/site/menus");
 export const deleteMenu = (id: string) => API.delete(`/site/menu/delete/${id}`);
+export const newFooterMenu = (formData: any) =>
+  API.post("/site/menu-footer/new", formData);
+export const getFooterMenus = () => API.get("/site/menus-footer");
 export const newSocialLinks = (formData: any) =>
   API.post("/site/social-links/new", formData);
 export const createPlan = (formData: any) =>
