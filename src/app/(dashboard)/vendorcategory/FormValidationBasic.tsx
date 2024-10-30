@@ -21,11 +21,13 @@ import { handelError } from "@/lib/utils";
 import { getVendorCategories, newVendorCategory } from "@/lib/api";
 import useUi from "@/lib/hooks/useUi";
 import { nanoid } from "nanoid";
+import { uploadFiles } from "@/lib/utils";
 
 // Styled Component Imports
 
 type FormValues = {
   name: string;
+  photo: string;
 };
 
 const FormValidationBasic = () => {
@@ -40,16 +42,22 @@ const FormValidationBasic = () => {
   } = useForm<FormValues>({
     defaultValues: {
       name: undefined,
+      photo: undefined,
     },
   });
 
   const onSubmit = async (value: any) => {
+    console.log(value);
     try {
-      await newVendorCategory({
-        name: value?.name,
-      });
+      const url = await uploadFiles([value?.photo], "others");
+      console.log(url);
+      // await newVendorCategory({
+      //   name: value?.name,
+      //   photo: url,
+      // });
       reset({
         name: "",
+        photo: "",
       });
       toast.success("Vendor added successfully.");
       setRefreash(!refreash);
@@ -64,7 +72,7 @@ const FormValidationBasic = () => {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={6}>
-            <Grid item xs={12} sm={12}>
+            <Grid item xs={12} sm={8}>
               <Controller
                 name="name"
                 control={control}
@@ -75,6 +83,26 @@ const FormValidationBasic = () => {
                     fullWidth
                     label="Name"
                     placeholder="Name"
+                    {...(errors.name && {
+                      error: true,
+                      helperText: "This field is required.",
+                    })}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <Controller
+                name="photo"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => (
+                  <CustomTextField
+                    {...field}
+                    fullWidth
+                    label="Photo"
+                    placeholder="Photo"
+                    type="file"
                     {...(errors.name && {
                       error: true,
                       helperText: "This field is required.",

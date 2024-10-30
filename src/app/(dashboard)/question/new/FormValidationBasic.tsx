@@ -12,7 +12,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 // Components Imports
-import { getVendorCategories, newQuestion, newVendorCategory } from "@/lib/api";
+import { getVendorCategories, newQuestion } from "@/lib/api";
 import { cn, handelError } from "@/lib/utils";
 import CustomTextField from "@core/components/mui/TextField";
 import FormHelperText from "@mui/material/FormHelperText";

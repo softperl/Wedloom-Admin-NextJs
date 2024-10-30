@@ -53,13 +53,13 @@ const FormValidationBasic = ({ aboutData }: any) => {
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      email: aboutData.email || undefined,
-      siteName: aboutData.name || undefined,
-      shortDescription: aboutData.description || undefined,
-      seokeywords: aboutData.seoKeyWords || [],
-      seoTitle: aboutData.seoTitle || undefined,
-      tagLine: aboutData.tagLine || undefined,
-      phone: aboutData.phone || undefined,
+      email: aboutData?.email || undefined,
+      siteName: aboutData?.name || undefined,
+      shortDescription: aboutData?.description || undefined,
+      seokeywords: aboutData?.seoKeyWords || [],
+      seoTitle: aboutData?.seoTitle || undefined,
+      tagLine: aboutData?.tagLine || undefined,
+      phone: aboutData?.phone || undefined,
     },
   });
 
@@ -334,8 +334,7 @@ const FormValidationBasic = ({ aboutData }: any) => {
                 variant="tonal"
                 color="secondary"
                 type="button"
-                onClick={() => router.back()}
-              >
+                onClick={() => router.back()}>
                 Cancel
               </Button>
             </Grid>

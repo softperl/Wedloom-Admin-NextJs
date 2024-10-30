@@ -21,16 +21,21 @@ import CustomTextField from "@core/components/mui/TextField";
 import EditorControlled from "./Editor";
 import { useState } from "react";
 import { newPrivacy } from "@/lib/api";
+import AppReactDraftWysiwyg from "@/libs/styles/AppReactDraftWysiwyg";
+import { EditorState } from "draft-js";
+//@ts-ignore
+import { stateToMarkdown } from "draft-js-export-markdown";
 
 // Styled Component Imports
 
 type FormValues = {
   title: string;
+  content: any;
 };
 
 const FormValidationBasic = () => {
   const router = useRouter();
-  const [content, setContent] = useState<string>("");
+  const [valueEditor, setValueEditor] = useState(EditorState.createEmpty());
   const [loading, setLoading] = useState(false);
 
   // Hooks
@@ -39,9 +44,11 @@ const FormValidationBasic = () => {
     reset,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<FormValues>({
     defaultValues: {
       title: undefined,
+      content: undefined,
     },
   });
 
@@ -50,7 +57,7 @@ const FormValidationBasic = () => {
       setLoading(true);
       await newPrivacy({
         title: value.title,
-        content: "",
+        content: value.content,
       });
       router.push("/policy");
     } catch (error) {
@@ -87,7 +94,15 @@ const FormValidationBasic = () => {
             </Grid>
 
             <Grid item xs={12}>
-              <EditorControlled />
+              <AppReactDraftWysiwyg
+                editorState={valueEditor}
+                onEditorStateChange={(data) => {
+                  const content = data.getCurrentContent();
+                  const markdown = stateToMarkdown(content);
+                  setValue("content", markdown);
+                  setValueEditor(data);
+                }}
+              />
             </Grid>
 
             <Grid item xs={12} className="flex gap-4">
@@ -98,8 +113,7 @@ const FormValidationBasic = () => {
                 variant="tonal"
                 color="secondary"
                 type="button"
-                onClick={() => router.back()}
-              >
+                onClick={() => router.back()}>
                 Cancel
               </Button>
             </Grid>

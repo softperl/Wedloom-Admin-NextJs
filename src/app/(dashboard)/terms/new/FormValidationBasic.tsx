@@ -13,24 +13,27 @@ import Grid from "@mui/material/Grid";
 
 // Third-party Imports
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 
 // Components Imports
 
-import CustomTextField from "@core/components/mui/TextField";
-import EditorControlled from "./Editor";
-import { useState } from "react";
 import { newTerms } from "@/lib/api";
+import AppReactDraftWysiwyg from "@/libs/styles/AppReactDraftWysiwyg";
+import CustomTextField from "@core/components/mui/TextField";
+import { EditorState } from "draft-js";
+import { useState } from "react";
+//@ts-ignore
+import { stateToMarkdown } from "draft-js-export-markdown";
 
 // Styled Component Imports
 
 type FormValues = {
   title: string;
+  content: any;
 };
 
 const FormValidationBasic = () => {
   const router = useRouter();
-  const [content, setContent] = useState<string>("");
+  const [valueEditor, setValueEditor] = useState(EditorState.createEmpty());
   const [loading, setLoading] = useState(false);
 
   // React hook form
@@ -39,18 +42,21 @@ const FormValidationBasic = () => {
     control,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<FormValues>({
     defaultValues: {
       title: undefined,
+      content: undefined,
     },
   });
 
   const onSubmit = async (value: any) => {
+    console.log(value);
     try {
       setLoading(true);
       await newTerms({
         title: value.title,
-        content: "",
+        content: value.content,
       });
       router.push("/terms");
     } catch (error) {
@@ -87,7 +93,15 @@ const FormValidationBasic = () => {
             </Grid>
 
             <Grid item xs={12}>
-              <EditorControlled />
+              <AppReactDraftWysiwyg
+                editorState={valueEditor}
+                onEditorStateChange={(data) => {
+                  const content = data.getCurrentContent();
+                  const markdown = stateToMarkdown(content);
+                  setValue("content", markdown);
+                  setValueEditor(data);
+                }}
+              />
             </Grid>
 
             <Grid item xs={12} className="flex gap-4">
@@ -98,8 +112,7 @@ const FormValidationBasic = () => {
                 variant="tonal"
                 color="secondary"
                 type="button"
-                onClick={() => router.back()}
-              >
+                onClick={() => router.back()}>
                 Cancel
               </Button>
             </Grid>
