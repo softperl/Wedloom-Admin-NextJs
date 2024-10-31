@@ -12,36 +12,42 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 // Components Imports
-import MenuItem from "@mui/material/MenuItem";
-import FormHelperText from "@mui/material/FormHelperText";
+import { newPost } from "@/lib/api";
 import useImagePreview from "@/lib/hooks/useImagePreview";
+import { handelError, slugify, uploadFiles } from "@/lib/utils";
+import AppReactDraftWysiwyg from "@/libs/styles/AppReactDraftWysiwyg";
 import CustomTextField from "@core/components/mui/TextField";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import FormHelperText from "@mui/material/FormHelperText";
+import MenuItem from "@mui/material/MenuItem";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
+import { formatDate } from "date-fns/format";
+import { EditorState } from "draft-js";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import EditorControlled from "./Editor";
-import Tag from "./Tag";
-import SEOKeyword from "./SEOKeyword";
 import { useEffect, useState } from "react";
-import { handelError, slugify } from "@/lib/utils";
-import { formatDate } from "date-fns/format";
-import { newPost } from "@/lib/api";
+import SEOKeyword from "./SEOKeyword";
+import Tag from "./Tag";
+//@ts-ignore
+import { stateToMarkdown } from "draft-js-export-markdown";
 
 type FormValues = {
-  image: string;
+  thumbnail: string;
   title: string;
   shortDescription: string;
-  description: string;
+  content: any;
   category: string;
-  seokeywords: string[];
+  seoKeywords: string[];
   status: string;
   author: string;
+  featured: boolean;
   tags: string[];
+  allowComments: boolean;
 };
 
-const FormValidationBasic = ({ categories }: any) => {
+const FormValidationBasic = ({ categories, authors }: any) => {
+  const [valueEditor, setValueEditor] = useState(EditorState.createEmpty());
   // State to hold the full URL
   const [fullUrl, setFullUrl] = useState<string>("");
   // Hooks
@@ -52,6 +58,7 @@ const FormValidationBasic = ({ categories }: any) => {
     handleFileChange,
     handleRemove,
   } = useImagePreview();
+  const [uploading, setUploading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -63,27 +70,40 @@ const FormValidationBasic = ({ categories }: any) => {
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      image: undefined,
+      thumbnail: undefined,
       title: "",
       shortDescription: "",
-      description: "",
-      seokeywords: [],
-      category: undefined,
+      content: undefined,
+      seoKeywords: [""],
+      tags: [],
+      category: "",
       status: "Published",
-      author: "Admin",
+      featured: false,
+      author: "",
+      allowComments: true,
     },
   });
 
   const onSubmit = async (value: any) => {
+    if (!selectedFile) {
+      toast.error("Please upload a photo.");
+      return;
+    }
+    setUploading(true);
     try {
+      const url = await uploadFiles([selectedFile], "others");
       await newPost({
         title: value.title,
-        description: value.shortDescription,
-        content: value.description,
         categoryId: value.category,
-        keywords: value.seokeywords,
-        status: value.status,
+        description: value.shortDescription,
+        keywords: seoKeywordsArray,
         tags: value.tags,
+        status: value.status,
+        authorId: value.author,
+        isFeatured: value.featured,
+        allowComments: value.allowComments,
+        thumbnail: url[0],
+        content: value.content,
       });
       toast.success("Post added successfully!");
       router.push("/blogs");
@@ -103,22 +123,20 @@ const FormValidationBasic = ({ categories }: any) => {
   }, [router]);
 
   const shortDes = watch("shortDescription");
-  const seokeywordsArray = watch("seokeywords");
-
-  console.log("seokeywordsArray", seokeywordsArray);
+  const seoKeywordsArray = watch("seoKeywords");
 
   const seoDescription = () => {
     if (
       !shortDes ||
-      !Array.isArray(seokeywordsArray) ||
-      seokeywordsArray.length === 0
+      !Array.isArray(seoKeywordsArray) ||
+      seoKeywordsArray.length === 0
     ) {
       return shortDes;
     }
 
     let highlightedDescription = shortDes;
 
-    seokeywordsArray.forEach((tag) => {
+    seoKeywordsArray.forEach((tag) => {
       const regex = new RegExp(`\\b(${tag})\\b`, "gi");
       highlightedDescription = highlightedDescription.replace(
         regex,
@@ -131,7 +149,7 @@ const FormValidationBasic = ({ categories }: any) => {
 
   useEffect(() => {
     seoDescription();
-  }, [seokeywordsArray]);
+  }, [seoKeywordsArray]);
 
   return (
     <Card>
@@ -186,11 +204,16 @@ const FormValidationBasic = ({ categories }: any) => {
                     {...field}
                     error={Boolean(errors.category)}>
                     <MenuItem value="">Select Category</MenuItem>
-                    {categories?.map((category: any) => (
-                      <MenuItem key={category.id} value={category.id}>
-                        {category.name}
-                      </MenuItem>
-                    ))}
+                    {categories?.map((category: any) => {
+                      return (
+                        <MenuItem
+                          key={category?.id}
+                          value={category.id}
+                          className="capitalize">
+                          {category.name}
+                        </MenuItem>
+                      );
+                    })}
                   </CustomTextField>
                 )}
               />
@@ -244,9 +267,9 @@ const FormValidationBasic = ({ categories }: any) => {
 
             <Grid item xs={12}>
               <Controller
-                name="seokeywords"
+                name="seoKeywords"
                 control={control}
-                rules={{ required: true }}
+                rules={{ required: false }}
                 render={({ field }) => {
                   return (
                     <SEOKeyword
@@ -289,14 +312,14 @@ const FormValidationBasic = ({ categories }: any) => {
                           fullWidth
                           label="Status"
                           {...field}
-                          error={Boolean(errors.category)}>
+                          error={Boolean(errors.status)}>
                           <MenuItem value="">Select Status</MenuItem>
                           <MenuItem value="Published">Published</MenuItem>
                           <MenuItem value="Draft">Draft</MenuItem>
                         </CustomTextField>
                       )}
                     />
-                    {errors.category && (
+                    {errors.status && (
                       <FormHelperText error>
                         This field is required.
                       </FormHelperText>
@@ -313,15 +336,21 @@ const FormValidationBasic = ({ categories }: any) => {
                           fullWidth
                           label="Author"
                           {...field}
-                          error={Boolean(errors.category)}>
-                          <MenuItem value="">Select author</MenuItem>
-                          <MenuItem value="Admin">Admin</MenuItem>
-                          <MenuItem value="Shipon">Shipon</MenuItem>
-                          <MenuItem value="Junayed">Junayed</MenuItem>
+                          error={Boolean(errors.author)}>
+                          <MenuItem value="">Select Author</MenuItem>
+
+                          {authors?.map((author: any) => (
+                            <MenuItem
+                              key={author.id}
+                              value={author.id}
+                              className="capitalize">
+                              {author.name}
+                            </MenuItem>
+                          ))}
                         </CustomTextField>
                       )}
                     />
-                    {errors.category && (
+                    {errors.author && (
                       <FormHelperText error>
                         This field is required.
                       </FormHelperText>
@@ -331,7 +360,9 @@ const FormValidationBasic = ({ categories }: any) => {
                 <Grid item container>
                   <Grid item xs={6}>
                     <FormControlLabel
-                      control={<Switch defaultChecked name="featured" />}
+                      control={
+                        <Switch defaultChecked={false} name="featured" />
+                      }
                       label="Is Featured"
                     />
                   </Grid>
@@ -382,7 +413,15 @@ const FormValidationBasic = ({ categories }: any) => {
               </Grid>
             </Grid>
             <Grid item xs={12}>
-              <EditorControlled />
+              <AppReactDraftWysiwyg
+                editorState={valueEditor}
+                onEditorStateChange={(data) => {
+                  const content = data.getCurrentContent();
+                  const markdown = stateToMarkdown(content);
+                  setValue("content", markdown);
+                  setValueEditor(data);
+                }}
+              />
             </Grid>
             <CardHeader title="SEO Preview" className="pb-0" />
             <Grid item xs={12}>

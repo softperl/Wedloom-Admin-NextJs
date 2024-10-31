@@ -48,6 +48,10 @@ export const newCategory = (formData: any) =>
   API.post("/blog/category/new", formData);
 export const deleteCategory = (id: string) =>
   API.delete(`/blog/category/delete/${id}`);
+export const newAuthor = (formData: any) =>
+  API.post("/blog/author/new", formData);
+export const deleteAuthor = (id: string) =>
+  API.delete(`/blog/author/delete/${id}`);
 export const deletePost = (id: string) => API.delete(`/blog/post/delete/${id}`);
 
 //Site

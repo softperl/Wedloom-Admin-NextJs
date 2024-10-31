@@ -11,12 +11,14 @@ import Grid from "@mui/material/Grid";
 
 // Third-party Imports
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 
 // Components Imports
 
 import CustomTextField from "@core/components/mui/TextField";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { handelError } from "@/lib/utils";
+import { newAuthor } from "@/lib/api";
 
 // Styled Component Imports
 
@@ -39,12 +41,21 @@ const FormValidationBasic = () => {
     defaultValues: {
       name: undefined,
       slug: undefined,
-      parent: undefined,
-      description: undefined,
     },
   });
 
-  const onSubmit = () => toast.success("Form Submitted");
+  const onSubmit = async (values: any) => {
+    try {
+      await newAuthor({
+        name: values.name,
+        slug: values.slug,
+      });
+      toast.success("Author created successfully");
+      window.location.reload();
+    } catch (error) {
+      handelError(error);
+    }
+  };
 
   return (
     <Card>

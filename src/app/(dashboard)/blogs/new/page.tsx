@@ -5,6 +5,7 @@ import { fetchFn } from "@/lib/servet-utils";
 
 export default async function page() {
   let data = null;
+  let authorData = null;
 
   try {
     data = await fetchFn(`/blog/category/get-all`, {
@@ -17,5 +18,23 @@ export default async function page() {
   } catch (error) {
     console.log(error);
   }
-  return <FormValidationBasic categories={data?.categories} />;
+
+  try {
+    authorData = await fetchFn(`/blog/author/get-all`, {
+      method: "GET",
+      next: {
+        revalidate: 0,
+        tags: ["authors"],
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  return (
+    <FormValidationBasic
+      categories={data?.categories}
+      authors={authorData?.authors}
+    />
+  );
 }

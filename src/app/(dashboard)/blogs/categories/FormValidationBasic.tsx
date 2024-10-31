@@ -135,7 +135,7 @@ const FormValidationBasic = ({ categories }: any) => {
                 color="secondary"
                 type="button"
                 onClick={() => router.back()}>
-                Cancle
+                Cancel
               </Button>
             </Grid>
           </Grid>
